@@ -3,14 +3,14 @@ import { createElement } from '../utils/utils';
 export default class AbstractView {
   constructor() {
     if (new.target === AbstractView) {
-      throw new Error('Can not instantiate Abstract, only concrete one.');
+      throw new Error(`Can not instantiate Abstract, only concrete one.`);
     }
     this._element = null;
     this._callback = {};
   }
 
   _getTemplate() {
-    throw new Error('Abstract method not implemented: getTemplate');
+    throw new Error(`Abstract method not implemented: getTemplate`);
   }
 
   getElement() {

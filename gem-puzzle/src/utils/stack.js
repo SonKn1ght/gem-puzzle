@@ -6,7 +6,7 @@ export default class Stack {
 
   push(value) {
     this.storage[this.count] = value;
-    this.count++;
+    this.count += 1;
   }
 
   pop() {
@@ -14,8 +14,8 @@ export default class Stack {
       return undefined;
     }
 
-    this.count--;
-    var result = this.storage[this.count];
+    this.count -= 1;
+    const result = this.storage[this.count];
     delete this.storage[this.count];
     return result;
   }
@@ -24,8 +24,7 @@ export default class Stack {
     return this.count;
   }
 
- peek() {
-    return this.storage[this.count-1];
+  peek() {
+    return this.storage[this.count - 1];
   }
 }
-
