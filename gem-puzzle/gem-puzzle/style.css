@@ -22,6 +22,7 @@ html {
   width: 9.4rem;
   height: 9.4rem;
   background-color: greenyellow;
+  transition: all 0.5s ease;
 }
 
 .number_0 {

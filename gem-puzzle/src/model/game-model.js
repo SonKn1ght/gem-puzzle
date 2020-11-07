@@ -22,26 +22,30 @@ export default class GameModel extends Observer {
   }
 
   updateGame(updateType, update) {
-    // вынести воид в параметр при маштабировании
+    // получаем текущую позицию воида
     const voidValue = 8;
     const voidPosition = this._currentGame.findIndex((el) => {
       return el.value === 8;
     });
+    // получаем текущую позицию кликнутого элемента
+    const updatePosition = this._currentGame.findIndex((el) => {
+      return el.value === +update;
+    });
     // проверяем доступность перемещения для полученного значения
-    if (!this._currentGame[voidPosition].allowedOffset.includes(update)) {
+
+    if (!this._currentGame[voidPosition].allowedOffset.includes(updatePosition)) {
       return;
     }
-    // определяем доступное смещение
-    const swapPosition = this._currentGame.findIndex((el) => {
-      return el.value === update;
-    });
-    // меняем местами ноль и полученную позицию
-    this._currentGame[voidPosition].value = this._currentGame[swapPosition].value;
-    this._currentGame[swapPosition].value = voidValue;
-    // пишем все перемещения в стэк
-    this._logGame.push([voidPosition, swapPosition]);
 
-    // this._notify(updateType, update);
+    // // меняем местами значения ноля и полученной позиции
+    this._currentGame[voidPosition].value = this._currentGame[updatePosition].value;
+    this._currentGame[updatePosition].value = voidValue;
+
+    // // пишем все перемещения в стэк
+    this._logGame.push([voidPosition, updatePosition]);
+    console.log(`It is win = ${this.checkWin()}`)
+
+    this._notify(updateType, update);
   }
 
   completeGame() {

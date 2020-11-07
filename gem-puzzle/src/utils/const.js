@@ -3,7 +3,7 @@ export const UserAction = {
 };
 
 export const UpdateType = {
-
+  MOVING: `MOVING`,
 };
 
 export const RenderPosition = {
