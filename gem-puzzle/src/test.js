@@ -45,3 +45,95 @@
 // };
 //
 //
+
+
+var dragMaster = (function() {
+
+  var dragObject
+  var mouseOffset
+  var dropTargets = []
+
+  function mouseUp(e){
+
+    e = fixEvent(e)
+
+    for(var i=0; i<dropTargets.length; i++){
+      var targ  = dropTargets[i]
+      var targPos    = getPosition(targ)
+      var targWidth  = parseInt(targ.offsetWidth)
+      var targHeight = parseInt(targ.offsetHeight)
+
+      if(
+        (e.pageX > targPos.x)                &&
+        (e.pageX < (targPos.x + targWidth))  &&
+        (e.pageY > targPos.y)                &&
+        (e.pageY < (targPos.y + targHeight))
+      )  {
+        alert("перенесен объект dragObject на акцептор currentDropTarget")
+      }
+
+    }
+
+    dragObject = null
+
+    removeDocumentEventHandlers()
+
+  }
+
+  function mouseDown(e) {
+
+    e = fixEvent(e)
+
+    if (e.which!=1) return
+
+    dragObject  = this
+
+    mouseOffset = getMouseOffset(this, e)
+
+    addDocumentEventHandlers()
+
+    return false
+
+  }
+
+  function removeDocumentEventHandlers() {
+
+    document.onmousemove = null
+
+    document.onmouseup = null
+
+    document.ondragstart = null
+
+    document.body.onselectstart = null
+
+  }
+
+  function addDocumentEventHandlers() {
+
+    document.onmousemove = mouseMove
+
+    document.onmouseup = mouseUp
+
+    document.ondragstart = function() { return false }
+
+    document.body.onselectstart = function() { return false }
+
+  }
+
+  function getMouseOffset(target, e) {...}
+
+  function mouseMove(e) {...}
+
+  return {
+
+    makeDraggable: function(element){...},
+
+    addDropTarget: function(dropTarget){
+
+      dropTargets.push(dropTarget)
+
+    }
+
+  }
+
+}())

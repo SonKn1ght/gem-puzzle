@@ -43,7 +43,7 @@ export default class GameModel extends Observer {
 
     // // пишем все перемещения в стэк
     this._logGame.push([voidPosition, updatePosition]);
-    console.log(`It is win = ${this.checkWin()}`)
+    // console.log(`It is win = ${this.checkWin()}`)
 
     this._notify(updateType, update);
   }

@@ -22,3 +22,15 @@ export const modelForThreeByThree = [
   { posFix: 7, value: 7, allowedOffset: [4, 6, 8] },
   { posFix: 8, value: 8, allowedOffset: [5, 7] },
 ];
+
+// const modelForThreeByThree = [
+//   {value: 0, allowedOffset: [1, 3] },
+//   {value: 1, allowedOffset: [0, 2, 4] },
+//   {value: 2, allowedOffset: [1, 5] },
+//   {value: 3, allowedOffset: [0, 4, 6] },
+//   {value: 4, allowedOffset: [1, 3, 5, 7] },
+//   {value: 5, allowedOffset: [2, 4, 8] },
+//   {value: 6, allowedOffset: [3, 7] },
+//   {value: 7, allowedOffset: [4, 6, 8] },
+//   {value: 8, allowedOffset: [5, 7] },
+// ];

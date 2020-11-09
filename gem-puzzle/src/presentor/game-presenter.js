@@ -7,10 +7,8 @@ export default class GamePresenter {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
 
-
-
-
     this._handleBoneClick = this._handleBoneClick.bind(this);
+    this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
     // this._handleViewAction = this._handleViewAction.bind(this);
@@ -35,11 +33,58 @@ export default class GamePresenter {
 
   _setHandlers() {
     this._gameComponent.setBoneClickHandler(this._handleBoneClick);
+    this._gameComponent.setBoneDragDropHandler(this._handleBoneDragDrop);
   }
 
   _handleBoneClick(evt) {
-    // console.log(evt.target.dataset.position);
     this._handleViewAction(UserAction.CLICK_BONE, UpdateType.MOVING, evt.target.dataset.position);
+  }
+
+  _handleBoneDragDrop(evt) {
+    evt.preventDefault();
+    const targetDrag = evt.target;
+    const container = this._gameComponent.getElement();
+
+    let startCoords = {
+      x: evt.clientX,
+      y: evt.clientY,
+    };
+
+    const dropTarget = this._gameComponent.getElement().querySelector(`.zero`);
+
+    const onMouseMove = (moveEvt) => {
+      this._gameComponent.removeBoneClickHandler();
+      moveEvt.preventDefault();
+
+      const shift = {
+        x: startCoords.x - moveEvt.clientX,
+        y: startCoords.y - moveEvt.clientY,
+      };
+
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY,
+      };
+
+      targetDrag.style.zIndex = 20;
+      targetDrag.style.transition = `none`;
+      targetDrag.style.top = `${targetDrag.offsetTop - shift.y}px`;
+      targetDrag.style.left = `${targetDrag.offsetLeft - shift.x}px`;
+    };
+
+    const onMouseUp = (upEvt) => {
+      upEvt.preventDefault();
+      console.log(upEvt)
+      targetDrag.style.zIndex = ``;
+      targetDrag.style.transition = ``;
+      container.removeEventListener(`mousemove`, onMouseMove);
+      container.removeEventListener(`mouseup`, onMouseUp);
+      // this._gameComponent.setBoneClickHandler(this._handleBoneClick);
+    };
+
+    container.addEventListener(`mousemove`, onMouseMove);
+    container.addEventListener(`mouseup`, onMouseUp);
+
   }
 
   _handleViewAction(actionType, updateType, update) {
