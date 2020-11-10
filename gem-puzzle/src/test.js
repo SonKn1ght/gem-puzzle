@@ -69,6 +69,7 @@ var dragMaster = (function() {
         (e.pageY > targPos.y)                &&
         (e.pageY < (targPos.y + targHeight))
       )  {
+
         alert("перенесен объект dragObject на акцептор currentDropTarget")
       }
 

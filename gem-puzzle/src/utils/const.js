@@ -1,5 +1,5 @@
 export const UserAction = {
-  CLICK_BONE: `CLICK_BONE`,
+  SWAP_BONE: `SWAP_BONE`,
 };
 
 export const UpdateType = {

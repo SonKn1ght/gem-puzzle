@@ -37,24 +37,28 @@ export default class GamePresenter {
   }
 
   _handleBoneClick(evt) {
-    this._handleViewAction(UserAction.CLICK_BONE, UpdateType.MOVING, evt.target.dataset.position);
+    this._handleViewAction(UserAction.SWAP_BONE, UpdateType.MOVING, evt.target.dataset.position);
   }
 
   _handleBoneDragDrop(evt) {
+    // если будет время доработать соскальзывание курсора с костяшки при быстром перемещении мыши
+    // довольное спорный момент но функции и обработчики MouseMove и MouseUp будут здесь внутри
+    // , а не вынесены в отдельные методы
     evt.preventDefault();
     const targetDrag = evt.target;
     const container = this._gameComponent.getElement();
+    const dropTargetCoords = this._gameComponent.getElement().querySelector(`.zero`).getBoundingClientRect();
 
     let startCoords = {
       x: evt.clientX,
       y: evt.clientY,
     };
 
-    const dropTarget = this._gameComponent.getElement().querySelector(`.zero`);
-
     const onMouseMove = (moveEvt) => {
-      this._gameComponent.removeBoneClickHandler();
+      // получаю объект с координатами пустой костяшки
+      // удаляем обработчик кликов на период работы перетаскивания
       moveEvt.preventDefault();
+      this._gameComponent.removeBoneClickHandler();
 
       const shift = {
         x: startCoords.x - moveEvt.clientX,
@@ -67,6 +71,7 @@ export default class GamePresenter {
       };
 
       targetDrag.style.zIndex = 20;
+      // отклучить transition иначен все не работает
       targetDrag.style.transition = `none`;
       targetDrag.style.top = `${targetDrag.offsetTop - shift.y}px`;
       targetDrag.style.left = `${targetDrag.offsetLeft - shift.x}px`;
@@ -74,22 +79,41 @@ export default class GamePresenter {
 
     const onMouseUp = (upEvt) => {
       upEvt.preventDefault();
-      console.log(upEvt)
-      targetDrag.style.zIndex = ``;
-      targetDrag.style.transition = ``;
+      // откладываем восстановление, что б не было эффекта пролета
+      // костяшки под другими при возврате на место и анимации влета в ячейку
+      setTimeout(() => {
+        targetDrag.style.zIndex = ``;
+        targetDrag.style.transition = ``;
+      }, 100);
+
+      // Проверяю попал ли отпускаемый элемент на пустую костяшку
+      if (dropTargetCoords.top < upEvt.clientY && dropTargetCoords.bottom > upEvt.clientY
+&& dropTargetCoords.left < upEvt.clientX && dropTargetCoords.right > upEvt.clientX) {
+        this._handleViewAction(UserAction.SWAP_BONE,
+          UpdateType.MOVING,
+          evt.target.dataset.position);
+        targetDrag.style.top = ``;
+        targetDrag.style.left = ``;
+      } else {
+        targetDrag.style.top = ``;
+        targetDrag.style.left = ``;
+      }
+
       container.removeEventListener(`mousemove`, onMouseMove);
       container.removeEventListener(`mouseup`, onMouseUp);
-      // this._gameComponent.setBoneClickHandler(this._handleBoneClick);
+      // восстанавливаем обработчик кликов после всего связанного с дропом
+      setTimeout(() => {
+        this._gameComponent.setBoneClickHandler(this._handleBoneClick);
+      }, 100);
     };
 
     container.addEventListener(`mousemove`, onMouseMove);
     container.addEventListener(`mouseup`, onMouseUp);
-
   }
 
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
-      case UserAction.CLICK_BONE:
+      case UserAction.SWAP_BONE:
         this._gameModel.updateGame(updateType, update);
         break;
       // case UserAction.*****:
