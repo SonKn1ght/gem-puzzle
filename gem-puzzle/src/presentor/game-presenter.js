@@ -1,12 +1,14 @@
 import { UserAction, UpdateType, RenderPosition } from '../utils/const';
 import GameView from '../view/game-view';
-import { render } from '../utils/utils';
+import ControlPanelView from '../view/control-panel';
+import { render, remove } from '../utils/utils';
 
 export default class GamePresenter {
   constructor(gameContainer, gameModel) {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
 
+    this._handleNewGameClick = this._handleNewGameClick.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
     this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
 
@@ -17,8 +19,17 @@ export default class GamePresenter {
   }
 
   init() {
+    this._renderControlPanel();
     this._gameModel.init();
     this._renderGame();
+  }
+
+  _renderControlPanel() {
+    this._controlPanelComponent = new ControlPanelView();
+
+    render(this._gameContainer,
+      this._controlPanelComponent.getElement(),
+      RenderPosition.AFTERBEGIN);
   }
 
   _renderGame() {
@@ -26,14 +37,30 @@ export default class GamePresenter {
 
     this._gameComponent = new GameView(game);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
-    this._setHandlers();
+    this._setHandlersGameComponent();
+    this._setHandlersControlPanel();
 
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
   }
 
-  _setHandlers() {
+  _setHandlersControlPanel() {
+    this._controlPanelComponent.setNewGameClickHandler(this._handleNewGameClick);
+  }
+
+  _setHandlersGameComponent() {
     this._gameComponent.setBoneClickHandler(this._handleBoneClick);
     this._gameComponent.setBoneDragDropHandler(this._handleBoneDragDrop);
+  }
+
+  _handleNewGameClick(evt) {
+    evt.preventDefault();
+    remove(this._gameComponent);
+
+    this._gameModel.init();
+    const game = this._gameModel.getGame();
+    this._gameComponent = new GameView(game);
+    render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
+    this._setHandlersGameComponent();
   }
 
   _handleBoneClick(evt) {

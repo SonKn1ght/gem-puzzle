@@ -10,7 +10,7 @@ export const shuffleGame = (array, numberOfMixes, log) => {
   for (let i = 0; i < numberOfMixes; i += 1) {
     // ищем положение пустой клетки по ее значению
     const voidValue = 8;
-    const voidPosition = mixedArray.findIndex((el) => el.value === 8);
+    const voidPosition = mixedArray.findIndex((el) => { return el.value === 8; });
     // выбираем индекс случайного перемещения из доступных по индексу их в массиве
     const swapIndex = getRandomInteger(0, mixedArray[voidPosition].allowedOffset.length - 1);
     // определяем доступное смещение
