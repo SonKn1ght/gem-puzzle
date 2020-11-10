@@ -1,7 +1,8 @@
 import Observer from './observer';
-import { modelForThreeByThree } from '../utils/const';
-import { shuffleGame, stirBackGame } from '../utils/utils-for-model';
+// import { ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight } from '../utils/const';
+import { shuffleGame, stirBackGame, returnGameGraph } from '../utils/utils-for-model';
 import Stack from '../utils/stack';
+import { getVoidPosition } from '../utils/utils';
 
 export default class GameModel extends Observer {
   constructor() {
@@ -11,10 +12,27 @@ export default class GameModel extends Observer {
     this._logGame = new Stack();
   }
 
-  init() {
-    this._currentGame = shuffleGame(modelForThreeByThree.slice(),
-      this._numberOfMixes,
-      this._logGame);
+  init(options) {
+    this._voidValue = getVoidPosition(options.size);
+    const gameGraph = returnGameGraph(options.size);
+
+    this._currentGame = shuffleGame(gameGraph.slice(),
+      options.numberOfMixes,
+      this._logGame, this._voidValue);
+  }
+
+  restart(updateType, update) {
+    // скидывание лога
+    this._logGame.clear();
+
+    this._voidValue = getVoidPosition(update.size);
+    const gameGraph = returnGameGraph(update.size);
+    // генерации новой игры с учетом принятых опций
+    this._currentGame = shuffleGame(gameGraph.slice(),
+      update.numberOfMixes,
+      this._logGame, this._voidValue);
+
+    this._notify(updateType, update);
   }
 
   getGame() {
@@ -23,9 +41,9 @@ export default class GameModel extends Observer {
 
   updateGame(updateType, update) {
     // получаем текущую позицию воида
-    const voidValue = 8;
+    const voidValue = this._voidValue;
     const voidPosition = this._currentGame.findIndex((el) => {
-      return el.value === 8;
+      return el.value === this._voidValue;
     });
     // получаем текущую позицию кликнутого элемента
     const updatePosition = this._currentGame.findIndex((el) => {

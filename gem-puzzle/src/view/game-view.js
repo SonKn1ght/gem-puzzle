@@ -1,9 +1,11 @@
 import AbstractView from './absctract-view';
+import { getVoidPosition } from '../utils/utils';
 
 const getTemlateBones = (data, size) => {
+  // console.log(data)
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
-              class="bone_x${size} number_${i} ${cur.value === 8 ? `zero` : ``}"
+              class="bone_x${size} number_${i} ${cur.value === getVoidPosition(size) ? `zero` : ``}"
               data-position="${cur.value}">${cur.value + 1}</div>`;
   }, ``);
 };
@@ -11,8 +13,9 @@ const getTemlateBones = (data, size) => {
 export default class GameView extends AbstractView {
   constructor(game, size = 3) {
     super();
-    this._size = size;
+    this._size = +size;
     this._game = game;
+    console.log(this._size);
 
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);

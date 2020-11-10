@@ -1,3 +1,5 @@
+import { ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight } from "./const";
+
 const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
   const upper = Math.floor(Math.max(a, b));
@@ -5,12 +7,12 @@ const getRandomInteger = (a = 0, b = 1) => {
   return Math.floor(lower + Math.random() * (upper - lower + 1));
 };
 
-export const shuffleGame = (array, numberOfMixes, log) => {
+export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
   const mixedArray = array.slice();
   for (let i = 0; i < numberOfMixes; i += 1) {
     // ищем положение пустой клетки по ее значению
-    const voidValue = 8;
-    const voidPosition = mixedArray.findIndex((el) => { return el.value === 8; });
+    // const voidValue = 8;
+    const voidPosition = mixedArray.findIndex((el) => { return el.value === voidValue; });
     // выбираем индекс случайного перемещения из доступных по индексу их в массиве
     const swapIndex = getRandomInteger(0, mixedArray[voidPosition].allowedOffset.length - 1);
     // определяем доступное смещение
@@ -36,4 +38,31 @@ export const stirBackGame = (array, log) => {
     arrayBack[swapIndex[1]].value = swapStorage;
   }
   return arrayBack;
+};
+
+export const returnGameGraph = (size) => {
+  let gameGraph;
+  switch (size) {
+    case `3`:
+      gameGraph = ThreeByThree;
+      break;
+    case `4`:
+      gameGraph = FourByFour;
+      break;
+    case `5`:
+      gameGraph = FiveByFive;
+      break;
+    case `6`:
+      gameGraph = SixBySix;
+      break;
+    case `7`:
+      gameGraph = SevenBySeven;
+      break;
+    case `8`:
+      gameGraph = EightByEight;
+      break;
+    default:
+      throw new Error(`not received Game Graph`);
+  }
+  return gameGraph;
 };

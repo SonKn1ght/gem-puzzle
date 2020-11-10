@@ -7,8 +7,13 @@ export default class GamePresenter {
   constructor(gameContainer, gameModel) {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
+    this._optionGame = {
+      size: `8`,
+      numberOfMixes: 100,
+    };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
+    this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
     this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
 
@@ -20,7 +25,7 @@ export default class GamePresenter {
 
   init() {
     this._renderControlPanel();
-    this._gameModel.init();
+    this._gameModel.init(this._optionGame);
     this._renderGame();
   }
 
@@ -30,21 +35,19 @@ export default class GamePresenter {
     render(this._gameContainer,
       this._controlPanelComponent.getElement(),
       RenderPosition.AFTERBEGIN);
+    this._setHandlersControlPanel();
   }
 
   _renderGame() {
-    const game = this._gameModel.getGame();
-
-    this._gameComponent = new GameView(game);
+    this._gameComponent = new GameView(this._gameModel.getGame(), this._optionGame.size);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
-    this._setHandlersGameComponent();
-    this._setHandlersControlPanel();
-
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
+    this._setHandlersGameComponent();
   }
 
   _setHandlersControlPanel() {
     this._controlPanelComponent.setNewGameClickHandler(this._handleNewGameClick);
+    this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
   }
 
   _setHandlersGameComponent() {
@@ -54,13 +57,11 @@ export default class GamePresenter {
 
   _handleNewGameClick(evt) {
     evt.preventDefault();
-    remove(this._gameComponent);
+    this._handleViewAction(UserAction.NEW_GAME, UpdateType.RESTART, this._optionGame);
+  }
 
-    this._gameModel.init();
-    const game = this._gameModel.getGame();
-    this._gameComponent = new GameView(game);
-    render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
-    this._setHandlersGameComponent();
+  _handleSizeChange(evt) {
+    this._optionGame.size = evt.target.value;
   }
 
   _handleBoneClick(evt) {
@@ -143,8 +144,9 @@ export default class GamePresenter {
       case UserAction.SWAP_BONE:
         this._gameModel.updateGame(updateType, update);
         break;
-      // case UserAction.*****:
-      //   break;
+      case UserAction.NEW_GAME:
+        this._gameModel.restart(updateType, update);
+        break;
       // case UserAction.*****:
       //   break;
       // case UserAction.******:
@@ -156,6 +158,10 @@ export default class GamePresenter {
     switch (updateType) {
       case UpdateType.MOVING:
         this._gameComponent.swapBone(data);
+        break;
+      case UpdateType.RESTART:
+        remove(this._gameComponent);
+        this._renderGame();
         break;
     }
   }

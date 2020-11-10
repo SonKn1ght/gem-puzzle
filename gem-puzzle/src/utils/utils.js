@@ -31,3 +31,8 @@ export const remove = (component) => {
   component.getElement().remove();
   component.removeElement();
 };
+
+// по размеру ребра поля получаем ключ последнего элемента в массиве
+export const getVoidPosition = (size) => {
+  return parseInt(size, 10) ** 2 - 1;
+};

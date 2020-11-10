@@ -27,4 +27,9 @@ export default class Stack {
   peek() {
     return this.storage[this.count - 1];
   }
+
+  clear() {
+    this.count = 0;
+    this.storage = {};
+  }
 }
