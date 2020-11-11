@@ -1,4 +1,6 @@
-import { ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight } from "./const";
+import {
+  ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight,
+} from "./const";
 
 const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
@@ -11,7 +13,6 @@ export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
   const mixedArray = array.slice();
   for (let i = 0; i < numberOfMixes; i += 1) {
     // ищем положение пустой клетки по ее значению
-    // const voidValue = 8;
     const voidPosition = mixedArray.findIndex((el) => { return el.value === voidValue; });
     // выбираем индекс случайного перемещения из доступных по индексу их в массиве
     const swapIndex = getRandomInteger(0, mixedArray[voidPosition].allowedOffset.length - 1);

@@ -11,11 +11,10 @@ const getTemlateBones = (data, size) => {
 };
 
 export default class GameView extends AbstractView {
-  constructor(game, size = 3) {
+  constructor(game, options) {
     super();
-    this._size = +size;
+    this._size = options.size;
     this._game = game;
-    console.log(this._size);
 
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);

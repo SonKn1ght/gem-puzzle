@@ -8,8 +8,9 @@ export default class GamePresenter {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
     this._optionGame = {
-      size: `8`,
+      size: `4`,
       numberOfMixes: 100,
+      startTime: new Date(),
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
@@ -18,7 +19,6 @@ export default class GamePresenter {
     this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
-    // this._handleViewAction = this._handleViewAction.bind(this);
 
     this._gameModel.addObserver(this._handleModelEvent);
   }
@@ -39,7 +39,7 @@ export default class GamePresenter {
   }
 
   _renderGame() {
-    this._gameComponent = new GameView(this._gameModel.getGame(), this._optionGame.size);
+    this._gameComponent = new GameView(this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
     this._setHandlersGameComponent();
@@ -157,12 +157,20 @@ export default class GamePresenter {
   _handleModelEvent(updateType, data) {
     switch (updateType) {
       case UpdateType.MOVING:
-        this._gameComponent.swapBone(data);
+        this._gameComponent.swapBone(data.numberBone);
+        this._controlPanelComponent.updateCounter(data.count);
         break;
       case UpdateType.RESTART:
         remove(this._gameComponent);
         this._renderGame();
+        // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
+        this._controlPanelComponent.updateCounter();
+        this._controlPanelComponent.updateTime();
         break;
+      case UpdateType.MEASURING_TIME:
+        this._controlPanelComponent.updateTime(data);
+        break;
+
     }
   }
 }

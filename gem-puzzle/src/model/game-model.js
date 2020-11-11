@@ -1,20 +1,25 @@
 import Observer from './observer';
-// import { ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight } from '../utils/const';
 import { shuffleGame, stirBackGame, returnGameGraph } from '../utils/utils-for-model';
 import Stack from '../utils/stack';
 import { getVoidPosition } from '../utils/utils';
+import { UpdateType } from "../utils/const";
 
 export default class GameModel extends Observer {
   constructor() {
     super();
     this._currentGame = [];
-    this._numberOfMixes = 50;
+    this._statsCurrentGame = {};
     this._logGame = new Stack();
+
+    this.measuringTime = this.measuringTime.bind(this);
   }
 
   init(options) {
     this._voidValue = getVoidPosition(options.size);
     const gameGraph = returnGameGraph(options.size);
+    this._statsCurrentGame.startTime = new Date();
+    this._statsCurrentGame.countMoves = 0;
+    this.measuringTime();
 
     this._currentGame = shuffleGame(gameGraph.slice(),
       options.numberOfMixes,
@@ -24,6 +29,9 @@ export default class GameModel extends Observer {
   restart(updateType, update) {
     // скидывание лога
     this._logGame.clear();
+    // скидывание счетчика и таймера в модели
+    this._statsCurrentGame.countMoves = 0;
+    this._statsCurrentGame.startTime = new Date();
 
     this._voidValue = getVoidPosition(update.size);
     const gameGraph = returnGameGraph(update.size);
@@ -45,7 +53,7 @@ export default class GameModel extends Observer {
     const voidPosition = this._currentGame.findIndex((el) => {
       return el.value === this._voidValue;
     });
-    // получаем текущую позицию кликнутого элемента
+    // получаем текущую позицию кликнутого-дропаемого элемента
     const updatePosition = this._currentGame.findIndex((el) => {
       return el.value === +update;
     });
@@ -55,15 +63,31 @@ export default class GameModel extends Observer {
       return;
     }
 
-    // // меняем местами значения ноля и полученной позиции
+    // // меняем местами значения пустого и полученной позиции
     this._currentGame[voidPosition].value = this._currentGame[updatePosition].value;
     this._currentGame[updatePosition].value = voidValue;
 
+    // считаем ходы пользователя
+    this._statsCurrentGame.countMoves += 1;
     // // пишем все перемещения в стэк
     this._logGame.push([voidPosition, updatePosition]);
     // console.log(`It is win = ${this.checkWin()}`)
 
-    this._notify(updateType, update);
+    // отправляем измененые параметры в презентор
+    const updateAll = {
+      numberBone: update,
+      count: this._statsCurrentGame.countMoves,
+    };
+    this._notify(updateType, updateAll);
+  }
+
+  measuringTime(updateType = UpdateType.MEASURING_TIME) {
+    const currentTime = new Date();
+    this._gameDuration = new Date(currentTime.getTime() - this._statsCurrentGame.startTime.getTime());
+
+    this._notify(updateType, this._gameDuration);
+
+    setTimeout(this.measuringTime, 1000);
   }
 
   completeGame() {

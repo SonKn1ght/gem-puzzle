@@ -8,7 +8,9 @@ export default class Observer {
   }
 
   removeObserver(observer) {
-    this._observer = this._observer.filter((existedObserver) => { return existedObserver !== observer; });
+    this._observer = this._observer.filter((existedObserver) => {
+      return existedObserver !== observer;
+    });
   }
 
   _notify(event, payload) {

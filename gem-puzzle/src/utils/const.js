@@ -6,6 +6,7 @@ export const UserAction = {
 export const UpdateType = {
   MOVING: `MOVING`,
   RESTART: `RESTART`,
+  MEASURING_TIME: `MEASURING_TIME`,
 };
 
 export const RenderPosition = {

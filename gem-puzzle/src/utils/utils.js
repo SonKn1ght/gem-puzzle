@@ -36,3 +36,7 @@ export const remove = (component) => {
 export const getVoidPosition = (size) => {
   return parseInt(size, 10) ** 2 - 1;
 };
+
+export const formatTimeByHuman = (date) => {
+  return date.toLocaleString(`en-US`, { minute: `2-digit`, second: `2-digit` });
+};
