@@ -1,5 +1,5 @@
 import AbstractView from './absctract-view';
-import { formatTimeByHuman } from '../utils/utils';
+import { formatGameDuration } from '../utils/utils';
 
 export default class ControlPanelView extends AbstractView {
   constructor() {
@@ -76,8 +76,8 @@ export default class ControlPanelView extends AbstractView {
     this._countContainer.innerHTML = this._count;
   }
 
-  updateTime(time = new Date(0)) {
-    this._timeContainer.innerHTML = formatTimeByHuman(time);
+  updateTime(duration = `00:00`) {
+    this._timeContainer.innerHTML = formatGameDuration(duration);
   }
 
   _newGameClickHandler(evt) {

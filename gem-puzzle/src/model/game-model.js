@@ -11,10 +11,12 @@ export default class GameModel extends Observer {
     this._statsCurrentGame = {};
     this._logGame = new Stack();
 
+    // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
   }
 
   init(options) {
+    this._currentGameOptions = options;
     this._voidValue = getVoidPosition(options.size);
     const gameGraph = returnGameGraph(options.size);
     this._statsCurrentGame.startTime = new Date();
@@ -78,14 +80,17 @@ export default class GameModel extends Observer {
       numberBone: update,
       count: this._statsCurrentGame.countMoves,
     };
+
+    this.checkWin();
     this._notify(updateType, updateAll);
   }
 
   measuringTime(updateType = UpdateType.MEASURING_TIME) {
-    const currentTime = new Date();
-    this._gameDuration = new Date(currentTime.getTime() - this._statsCurrentGame.startTime.getTime());
+    this._statsCurrentGame.endTime = new Date();
+    this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
+      - this._statsCurrentGame.startTime.getTime();
 
-    this._notify(updateType, this._gameDuration);
+    this._notify(updateType, this._statsCurrentGame.durationGame);
 
     setTimeout(this.measuringTime, 1000);
   }
@@ -101,6 +106,9 @@ export default class GameModel extends Observer {
         isWin = false;
       }
     });
-    return isWin;
+    if (isWin) {
+      // прокидываю стату в обработку завершения игры
+      this._notify(UpdateType.WIN, this._statsCurrentGame);
+    }
   }
 }

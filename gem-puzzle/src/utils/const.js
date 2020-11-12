@@ -7,6 +7,7 @@ export const UpdateType = {
   MOVING: `MOVING`,
   RESTART: `RESTART`,
   MEASURING_TIME: `MEASURING_TIME`,
+  WIN: `WIN`,
 };
 
 export const RenderPosition = {

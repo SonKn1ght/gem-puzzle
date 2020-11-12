@@ -37,6 +37,23 @@ export const getVoidPosition = (size) => {
   return parseInt(size, 10) ** 2 - 1;
 };
 
-export const formatTimeByHuman = (date) => {
-  return date.toLocaleString(`en-US`, { minute: `2-digit`, second: `2-digit` });
+const addZero = (number) => {
+  let numberCurrent = String(number);
+  const twoDigit = 2;
+  if (numberCurrent.length === twoDigit) {
+    return number;
+  }
+  numberCurrent = `0${number}`;
+  return numberCurrent;
+};
+
+export const formatGameDuration = (duration) => {
+  const hour = Math.floor((duration / (1000 * 60 * 60)) % 60);
+  const minute = Math.floor((duration / (1000 * 60)) % 60);
+  const seconds = Math.floor((duration / (1000)) % 60);
+  if (hour !== 0) {
+    return `${addZero(hour)}:${addZero(minute)}:${addZero(seconds)}`;
+  }
+
+  return `${addZero(minute)}:${addZero(seconds)}`;
 };

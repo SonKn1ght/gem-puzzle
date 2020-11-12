@@ -4,11 +4,12 @@ import ControlPanelView from '../view/control-panel';
 import { render, remove } from '../utils/utils';
 
 export default class GamePresenter {
-  constructor(gameContainer, gameModel) {
+  constructor(gameContainer, gameModel, scoreModel) {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
+    this._scoreModel = scoreModel;
     this._optionGame = {
-      size: `4`,
+      size: `3`,
       numberOfMixes: 100,
       startTime: new Date(),
     };
@@ -27,6 +28,11 @@ export default class GamePresenter {
     this._renderControlPanel();
     this._gameModel.init(this._optionGame);
     this._renderGame();
+
+    this._scoreModel.getStorage();
+
+    // тест автовыигрыша
+    // this._gameModel.completeGame()
   }
 
   _renderControlPanel() {
@@ -170,7 +176,9 @@ export default class GamePresenter {
       case UpdateType.MEASURING_TIME:
         this._controlPanelComponent.updateTime(data);
         break;
-
+      case UpdateType.WIN:
+        this._scoreModel.updateStorage(this._optionGame.size, data);
+        break;
     }
   }
 }
