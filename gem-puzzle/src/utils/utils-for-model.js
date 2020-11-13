@@ -18,28 +18,32 @@ export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
     const swapIndex = getRandomInteger(0, mixedArray[voidPosition].allowedOffset.length - 1);
     // определяем доступное смещение
     const swapPosition = mixedArray[voidPosition].allowedOffset[swapIndex];
+    log.push(mixedArray[swapPosition].value);
     // меняем местами ноль и одну из доступных позиций
     mixedArray[voidPosition].value = mixedArray[swapPosition].value;
     mixedArray[swapPosition].value = voidValue;
-    // пишем все перемещения в стэк
-    log.push([voidPosition, swapPosition]);
+    // пишем все перемещения в стэк старый вариант пока подумать еще над этим
+    // log.push([voidPosition, swapPosition]);
   }
   // возвращаем перемешанную комбинацию
   return mixedArray;
 };
 
-export const stirBackGame = (array, log) => {
-  const arrayBack = array.slice();
-  const count = log.size();
-  for (let i = 0; i < count; i += 1) {
-    const swapIndex = log.pop();
-
-    const swapStorage = arrayBack[swapIndex[0]].value;
-    arrayBack[swapIndex[0]].value = arrayBack[swapIndex[1]].value;
-    arrayBack[swapIndex[1]].value = swapStorage;
-  }
-  return arrayBack;
-};
+// разматывает саму структуру данных, не визуал, подумать нужно ли
+// export const stirBackGame = (array, log, notify, updateType) => {
+//   const arrayBack = array.slice();
+//   const count = log.size();
+//   for (let i = 0; i < count; i += 1) {
+//     const swapIndex = log.pop();
+//
+//     // notify(updateType, swapIndex[0]);
+//
+//     const swapStorage = arrayBack[swapIndex[0]].value;
+//     arrayBack[swapIndex[0]].value = arrayBack[swapIndex[1]].value;
+//     arrayBack[swapIndex[1]].value = swapStorage;
+//   }
+//   return arrayBack;
+// };
 
 export const returnGameGraph = (size) => {
   let gameGraph;

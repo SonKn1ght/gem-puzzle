@@ -13,6 +13,8 @@ export default class GameModel extends Observer {
 
     // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
+    this._notify = this._notify.bind(this);
+    this.completeGame = this.completeGame.bind(this);
   }
 
   init(options) {
@@ -71,9 +73,8 @@ export default class GameModel extends Observer {
 
     // считаем ходы пользователя
     this._statsCurrentGame.countMoves += 1;
-    // // пишем все перемещения в стэк
-    this._logGame.push([voidPosition, updatePosition]);
-    // console.log(`It is win = ${this.checkWin()}`)
+    // // пишем все номера перемещаемых костяшек по порядку в стэк
+    this._logGame.push(update);
 
     // отправляем измененые параметры в презентор
     const updateAll = {
@@ -95,8 +96,14 @@ export default class GameModel extends Observer {
     setTimeout(this.measuringTime, 1000);
   }
 
-  completeGame() {
-    this._currentGame = stirBackGame(this._currentGame, this._logGame);
+  completeGame(updateType = `SURRENDER`) {
+    if (this._logGame.size() === 0) {
+      return;
+    }
+
+    const swapIndex = this._logGame.pop();
+    this._notify(updateType, `${swapIndex}`);
+    setTimeout(this.completeGame, 510);
   }
 
   checkWin() {

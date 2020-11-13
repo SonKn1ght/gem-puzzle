@@ -1,6 +1,7 @@
 export const UserAction = {
   SWAP_BONE: `SWAP_BONE`,
   NEW_GAME: `NEW_GAME`,
+  SHOW_HOW_WIN: `SHOW_HOW_WIN`,
 };
 
 export const UpdateType = {
@@ -8,6 +9,7 @@ export const UpdateType = {
   RESTART: `RESTART`,
   MEASURING_TIME: `MEASURING_TIME`,
   WIN: `WIN`,
+  SURRENDER: `SURRENDER`,
 };
 
 export const RenderPosition = {

@@ -10,6 +10,7 @@ export default class ControlPanelView extends AbstractView {
 
     this._newGameClickHandler = this._newGameClickHandler.bind(this);
     this._scoreClickHandler = this._scoreClickHandler.bind(this);
+    this._helpGameClickHandler = this._helpGameClickHandler.bind(this);
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
   }
 
@@ -67,6 +68,7 @@ export default class ControlPanelView extends AbstractView {
                 </div>
                 <button class="control-panel__score">Score</button>
               </div>
+              <button class="control-panel__end-game">Do it for me</button>
             </div>`;
   }
 
@@ -102,6 +104,16 @@ export default class ControlPanelView extends AbstractView {
   setScoreClickHandler(callback) {
     this._callback.scoreClickHandler = callback;
     this.getElement().querySelector(`.control-panel__score`).addEventListener(`click`, this._scoreClickHandler);
+  }
+
+  _helpGameClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.helpGameClickHandler(evt);
+  }
+
+  setHelpGameClickHandler(callback) {
+    this._callback.helpGameClickHandler = callback;
+    this.getElement().querySelector(`.control-panel__end-game`).addEventListener(`click`, this._helpGameClickHandler);
   }
 
   _sizeChangeHandler(evt) {

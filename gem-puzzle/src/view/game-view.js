@@ -29,6 +29,7 @@ export default class GameView extends AbstractView {
   }
 
   swapBone(swapElement) {
+    console.log(swapElement)
     // поиск элемента по значению дата-атрибута
     const swapTargetElement = this.getElement().querySelector(`[data-position='${swapElement}']`);
     const swapVoidElement = this.getElement().querySelector(`.zero`);

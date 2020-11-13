@@ -102,7 +102,6 @@ export default class ScoreView extends AbstractView {
   }
 
   _changeRecordsByTypeOfGame(evt) {
-   console.log(evt.target.value);
     this.getElement().querySelector(`.score__list`).innerHTML = generateRecordItems(this._score, evt.target.value);
   }
 }

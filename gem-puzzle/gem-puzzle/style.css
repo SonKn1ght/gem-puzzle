@@ -231,13 +231,15 @@ body {
 }
 
 .score__item-number {
+  width: 20px;
+  text-align: right;
   margin: 0 15px 0 0;
 }
 
 .score__item-moves {
   display: block;
   width: 50px;
-  text-align: right;
+  text-align: center;
   margin: 0 15px 0 0;
 }
 
@@ -343,7 +345,6 @@ body {
 .container_x3 .bone_x3 {
   position: absolute;
   border: 1px solid wheat;
-  /*border-radius: 10px;*/
   width: 9.8rem;
   height: 9.8rem;
   background-color: black;

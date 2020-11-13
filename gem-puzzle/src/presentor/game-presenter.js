@@ -10,13 +10,14 @@ export default class GamePresenter {
     this._gameModel = gameModel;
     this._scoreModel = scoreModel;
     this._optionGame = {
-      size: `3`,
-      numberOfMixes: 100,
+      size: `4`,
+      numberOfMixes: 15,
       startTime: new Date(),
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
     this._handleScoreClick = this._handleScoreClick.bind(this);
+    this._handleHelpGameClick = this._handleHelpGameClick.bind(this);
     this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
     this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
@@ -65,6 +66,7 @@ export default class GamePresenter {
     this._controlPanelComponent.setNewGameClickHandler(this._handleNewGameClick);
     this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
     this._controlPanelComponent.setScoreClickHandler(this._handleScoreClick);
+    this._controlPanelComponent.setHelpGameClickHandler(this._handleHelpGameClick);
   }
 
   _setHandlersGameComponent() {
@@ -91,6 +93,11 @@ export default class GamePresenter {
     remove(this._scoreComponent);
   }
 
+  _handleHelpGameClick(evt) {
+    evt.preventDefault();
+    this._handleViewAction(UserAction.SHOW_HOW_WIN, UpdateType.SURRENDER);
+  }
+
   _handleSizeChange(evt) {
     this._optionGame.size = evt.target.value;
   }
@@ -107,7 +114,6 @@ export default class GamePresenter {
     const targetDrag = evt.target;
     const container = this._gameComponent.getElement();
     const dropTargetCoords = this._gameComponent.getElement().querySelector(`.zero`).getBoundingClientRect();
-
     let startCoords = {
       x: evt.clientX,
       y: evt.clientY,
@@ -178,8 +184,9 @@ export default class GamePresenter {
       case UserAction.NEW_GAME:
         this._gameModel.restart(updateType, update);
         break;
-      // case UserAction.*****:
-      //   break;
+      case UserAction.SHOW_HOW_WIN:
+        this._gameModel.completeGame(updateType);
+        break;
       // case UserAction.******:
       //   break;
     }
@@ -188,6 +195,8 @@ export default class GamePresenter {
   _handleModelEvent(updateType, data) {
     switch (updateType) {
       case UpdateType.MOVING:
+
+
         this._gameComponent.swapBone(data.numberBone);
         this._controlPanelComponent.updateCounter(data.count);
         break;
@@ -203,6 +212,9 @@ export default class GamePresenter {
         break;
       case UpdateType.WIN:
         this._scoreModel.updateStorage(this._optionGame.size, data);
+        break;
+      case UpdateType.SURRENDER:
+        this._gameComponent.swapBone(data);
         break;
     }
   }
