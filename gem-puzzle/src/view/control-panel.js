@@ -9,6 +9,7 @@ export default class ControlPanelView extends AbstractView {
     this._timeContainer = this.getElement().querySelector(`.control-panel__time`);
 
     this._newGameClickHandler = this._newGameClickHandler.bind(this);
+    this._scoreClickHandler = this._scoreClickHandler.bind(this);
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
   }
 
@@ -64,10 +65,8 @@ export default class ControlPanelView extends AbstractView {
                 <div class="control-panel__time-container">
                 Time: <span class="control-panel__time">00:00</span>
                 </div>
+                <button class="control-panel__score">Score</button>
               </div>
-
-
-
             </div>`;
   }
 
@@ -77,6 +76,11 @@ export default class ControlPanelView extends AbstractView {
   }
 
   updateTime(duration = `00:00`) {
+    if (typeof duration !== `number`) {
+      this._timeContainer.innerHTML = `00:00`;
+      return;
+    }
+
     this._timeContainer.innerHTML = formatGameDuration(duration);
   }
 
@@ -88,6 +92,16 @@ export default class ControlPanelView extends AbstractView {
   setNewGameClickHandler(callback) {
     this._callback.newGameClickHandler = callback;
     this.getElement().querySelector(`.control-panel__new-game`).addEventListener(`click`, this._newGameClickHandler);
+  }
+
+  _scoreClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.scoreClickHandler(evt);
+  }
+
+  setScoreClickHandler(callback) {
+    this._callback.scoreClickHandler = callback;
+    this.getElement().querySelector(`.control-panel__score`).addEventListener(`click`, this._scoreClickHandler);
   }
 
   _sizeChangeHandler(evt) {

@@ -1,5 +1,6 @@
 import { UserAction, UpdateType, RenderPosition } from '../utils/const';
 import GameView from '../view/game-view';
+import ScoreView from '../view/score-view';
 import ControlPanelView from '../view/control-panel';
 import { render, remove } from '../utils/utils';
 
@@ -15,6 +16,8 @@ export default class GamePresenter {
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
+    this._handleScoreClick = this._handleScoreClick.bind(this);
+    this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
     this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
     this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
@@ -51,9 +54,17 @@ export default class GamePresenter {
     this._setHandlersGameComponent();
   }
 
+  _renderScore() {
+    this._scoreComponent = new ScoreView(this._scoreModel.getScore(), this._optionGame.size);
+
+    render(this._gameContainer, this._scoreComponent.getElement(), RenderPosition.BEFOREEND);
+    this._setHandlersScoreComponent();
+  }
+
   _setHandlersControlPanel() {
     this._controlPanelComponent.setNewGameClickHandler(this._handleNewGameClick);
     this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
+    this._controlPanelComponent.setScoreClickHandler(this._handleScoreClick);
   }
 
   _setHandlersGameComponent() {
@@ -61,9 +72,23 @@ export default class GamePresenter {
     this._gameComponent.setBoneDragDropHandler(this._handleBoneDragDrop);
   }
 
+  _setHandlersScoreComponent() {
+    this._scoreComponent.setCloseScoreClickHandler(this._handleScoreCloseClick);
+  }
+
   _handleNewGameClick(evt) {
     evt.preventDefault();
     this._handleViewAction(UserAction.NEW_GAME, UpdateType.RESTART, this._optionGame);
+  }
+
+  _handleScoreClick(evt) {
+    evt.preventDefault();
+    this._renderScore();
+  }
+
+  _handleScoreCloseClick(evt) {
+    evt.preventDefault();
+    remove(this._scoreComponent);
   }
 
   _handleSizeChange(evt) {

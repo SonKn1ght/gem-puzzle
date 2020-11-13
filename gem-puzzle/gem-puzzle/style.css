@@ -56,6 +56,27 @@ body {
   background-color: gray;
 }
 
+.control-panel__score {
+  display: inline-block;
+
+  font-size: 16px;
+
+  box-sizing: border-box;
+  padding: 1.2rem 2.5rem;
+
+  color: black;
+  background-color: #E5E5E5;
+  border: none;
+  border-radius: 10rem;
+  outline: none;
+  margin: 0 10px 15px 0;
+}
+
+.control-panel__score:hover {
+  cursor: pointer;
+  background-color: gray;
+}
+
 .control-panel__size-item {
   position: relative;
   padding-left: 23px;
@@ -151,6 +172,7 @@ body {
 .control-panel__wrapper-second-row {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .control-panel__moves-container {
@@ -163,6 +185,147 @@ body {
   margin: 0 15px 15px 0;
 }
 
+/*/////////////////// SCORE /////////////*/
+
+.score_wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: rgba(41, 41, 41, 0.9);
+}
+
+.score_container {
+  margin: 30px auto;
+  padding: 20px;
+  border-radius: 20px;
+  color: white;
+  font-size: 18px;
+
+
+}
+
+.score__list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.score__item {
+  display: flex;
+}
+
+.score__item-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  font-size: 20px;
+}
+
+.score__item-number {
+  margin: 0 15px 0 0;
+}
+
+.score__item-moves {
+  display: block;
+  width: 50px;
+  text-align: right;
+  margin: 0 15px 0 0;
+}
+
+.score__item-duration {
+  display: block;
+  width: 50px;
+}
+
+.score__empty {
+  font-size: 22px;
+}
+
+.score__size-item {
+  padding-left: 23px;
+  vertical-align: center;
+}
+
+.score__size-item label {
+  display: flex;
+  height: 28px;
+  align-items: center;
+}
+
+.radio-indicator_score {
+  display: block;
+}
+
+.radio-indicator_score:hover {
+  cursor: pointer;
+}
+
+.score__size-item input[type="radio"]:checked + .radio-indicator_score {
+  font-size: 25px;
+}
+
+.score__size-item input[type="radio"]:hover + .radio-indicator_score {
+  color: gray;
+  cursor: pointer;
+}
+
+.score__size-control-list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+
+  font-size: 16px;
+  list-style: none;
+}
+
+@media (max-width: 767px) {
+  .score__size-control-list  {
+    width: 180px;
+    margin: 0 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .score__size-item {
+    padding: 0 10px;
+  }
+}
+
+.score__close-wrapper {
+  width: 100%;
+}
+
+.score__close {
+  display: block;
+  width: 100px;
+  margin-left: auto;
+  text-align: center;
+
+  font-size: 24px;
+
+  box-sizing: border-box;
+  padding: 1.2rem 2.5rem;
+
+  color: black;
+  background-color: #E5E5E5;
+  border: none;
+  border-radius: 10rem;
+  outline: none;
+}
+
+.score__close:hover {
+  cursor: pointer;
+  background-color: gray;
+}
 
 /*///////////// 3 НА 3 /////////////*/
 

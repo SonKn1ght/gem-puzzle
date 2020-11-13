@@ -11,6 +11,7 @@
   "airbnb-base"
   ],
   "rules": {
+    "no-param-reassign": "warn",
     "no-underscore-dangle": "off",
     "quotes": ["error", "backtick"],
     "arrow-body-style": ["error", "always"]

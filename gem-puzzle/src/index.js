@@ -10,4 +10,3 @@ const scoreModel = new ScoreModel();
 const gamePresenter = new GamePresenter(bodyElement, gameModel, scoreModel);
 
 gamePresenter.init();
-
