@@ -10,8 +10,8 @@ export default class GamePresenter {
     this._gameModel = gameModel;
     this._scoreModel = scoreModel;
     this._optionGame = {
-      size: `4`,
-      numberOfMixes: 15,
+      size: `3`,
+      numberOfMixes: 10,
       startTime: new Date(),
     };
 
@@ -34,9 +34,6 @@ export default class GamePresenter {
     this._renderGame();
 
     this._scoreModel.getStorage();
-
-    // тест автовыигрыша
-    // this._gameModel.completeGame()
   }
 
   _renderControlPanel() {
@@ -185,7 +182,7 @@ export default class GamePresenter {
         this._gameModel.restart(updateType, update);
         break;
       case UserAction.SHOW_HOW_WIN:
-        this._gameModel.completeGame(updateType);
+        this._gameModel.completeGame();
         break;
       // case UserAction.******:
       //   break;
@@ -195,8 +192,6 @@ export default class GamePresenter {
   _handleModelEvent(updateType, data) {
     switch (updateType) {
       case UpdateType.MOVING:
-
-
         this._gameComponent.swapBone(data.numberBone);
         this._controlPanelComponent.updateCounter(data.count);
         break;
@@ -212,9 +207,6 @@ export default class GamePresenter {
         break;
       case UpdateType.WIN:
         this._scoreModel.updateStorage(this._optionGame.size, data);
-        break;
-      case UpdateType.SURRENDER:
-        this._gameComponent.swapBone(data);
         break;
     }
   }

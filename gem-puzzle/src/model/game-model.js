@@ -1,5 +1,5 @@
 import Observer from './observer';
-import { shuffleGame, stirBackGame, returnGameGraph } from '../utils/utils-for-model';
+import { shuffleGame, stirBackGame, generateGraph } from '../utils/utils-for-model';
 import Stack from '../utils/stack';
 import { getVoidPosition } from '../utils/utils';
 import { UpdateType } from "../utils/const";
@@ -10,6 +10,7 @@ export default class GameModel extends Observer {
     this._currentGame = [];
     this._statsCurrentGame = {};
     this._logGame = new Stack();
+    this._surrender = false;
 
     // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
@@ -20,27 +21,31 @@ export default class GameModel extends Observer {
   init(options) {
     this._currentGameOptions = options;
     this._voidValue = getVoidPosition(options.size);
-    const gameGraph = returnGameGraph(options.size);
+    const gameGraph = generateGraph(parseInt(options.size, 10));
+
     this._statsCurrentGame.startTime = new Date();
     this._statsCurrentGame.countMoves = 0;
     this.measuringTime();
 
-    this._currentGame = shuffleGame(gameGraph.slice(),
+    this._currentGame = shuffleGame(gameGraph,
       options.numberOfMixes,
       this._logGame, this._voidValue);
+    console.log(this._currentGame);
   }
 
   restart(updateType, update) {
     // скидывание лога
     this._logGame.clear();
+    this._currentGame = [];
     // скидывание счетчика и таймера в модели
     this._statsCurrentGame.countMoves = 0;
     this._statsCurrentGame.startTime = new Date();
 
     this._voidValue = getVoidPosition(update.size);
-    const gameGraph = returnGameGraph(update.size);
+    const gameGraph = generateGraph(parseInt(update.size, 10));
+
     // генерации новой игры с учетом принятых опций
-    this._currentGame = shuffleGame(gameGraph.slice(),
+    this._currentGame = shuffleGame(gameGraph,
       update.numberOfMixes,
       this._logGame, this._voidValue);
 
@@ -71,18 +76,28 @@ export default class GameModel extends Observer {
     this._currentGame[voidPosition].value = this._currentGame[updatePosition].value;
     this._currentGame[updatePosition].value = voidValue;
 
-    // считаем ходы пользователя
-    this._statsCurrentGame.countMoves += 1;
-    // // пишем все номера перемещаемых костяшек по порядку в стэк
-    this._logGame.push(update);
+    // разрыв в блоке так себе выглядит
+    if (!this._surrender) {
+      // считаем ходы пользователя
+      this._statsCurrentGame.countMoves += 1;
+    }
 
-    // отправляем измененые параметры в презентор
+    // готовим измененые параметры для отправки в презентор
     const updateAll = {
       numberBone: update,
       count: this._statsCurrentGame.countMoves,
     };
 
-    this.checkWin();
+    // действия в блоке выполняются покуда пользователь не выбросил белый флаг
+    if (!this._surrender) {
+      // // пишем все номера перемещаемых костяшек по порядку в стэк
+      this._logGame.push(update);
+
+      this.checkWin();
+      this._notify(updateType, updateAll);
+      return;
+    }
+
     this._notify(updateType, updateAll);
   }
 
@@ -96,13 +111,17 @@ export default class GameModel extends Observer {
     setTimeout(this.measuringTime, 1000);
   }
 
-  completeGame(updateType = `SURRENDER`) {
+  completeGame() {
+    // меняю флаг что бы обработать выигрыш компьютера, использую метод модели updateGame
+    // дабы менять и состояние игры в данных и в представлении
+    this._surrender = true;
     if (this._logGame.size() === 0) {
+      this._surrender = false;
       return;
     }
 
     const swapIndex = this._logGame.pop();
-    this._notify(updateType, `${swapIndex}`);
+    this.updateGame(UpdateType.MOVING, swapIndex);
     setTimeout(this.completeGame, 510);
   }
 

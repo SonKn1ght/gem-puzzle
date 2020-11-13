@@ -23,7 +23,6 @@ export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
     mixedArray[voidPosition].value = mixedArray[swapPosition].value;
     mixedArray[swapPosition].value = voidValue;
     // пишем все перемещения в стэк старый вариант пока подумать еще над этим
-    // log.push([voidPosition, swapPosition]);
   }
   // возвращаем перемешанную комбинацию
   return mixedArray;
@@ -45,29 +44,48 @@ export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
 //   return arrayBack;
 // };
 
-export const returnGameGraph = (size) => {
-  let gameGraph;
-  switch (size) {
-    case `3`:
-      gameGraph = ThreeByThree;
-      break;
-    case `4`:
-      gameGraph = FourByFour;
-      break;
-    case `5`:
-      gameGraph = FiveByFive;
-      break;
-    case `6`:
-      gameGraph = SixBySix;
-      break;
-    case `7`:
-      gameGraph = SevenBySeven;
-      break;
-    case `8`:
-      gameGraph = EightByEight;
-      break;
-    default:
-      throw new Error(`not received Game Graph`);
-  }
-  return gameGraph;
+// Функции для генерации стартовых графов.
+// граф представляет собой массив объектов с тремя значениями.
+// первое значение позиция клетки на игровом поле.
+// второе значение - значение костяшки занимающей данную позицию.
+// третье значение - массив содержаший список возможных перемещений
+// с данной точки по правилам пятнашек.
+export const generateGraph = (size) => {
+  const initialArray = (() => {
+    const array = [];
+    for (let i = 0; i < size ** 2; i += 1) {
+      array.push(i);
+    }
+    return array;
+  })();
+
+  return initialArray.reduce((acc, cur, i, array) => {
+    const accessiblePaths = [];
+    if (cur % size === size - 1) {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur - 1);
+    } else if (cur % size === 0) {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur + 1);
+    } else {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur + 1);
+      accessiblePaths.push(cur - 1);
+    }
+
+
+    const accessiblePathsFilters = accessiblePaths.filter((current) => {
+      return (current >= 0 && current < array.length);
+    });
+
+    acc.push({
+      posFix: cur,
+      value: cur,
+      allowedOffset: accessiblePathsFilters.sort(),
+    });
+    return acc;
+  }, []);
 };
