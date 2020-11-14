@@ -1,7 +1,7 @@
 export default class Stack {
-  constructor() {
-    this.count = 0;
-    this.storage = {};
+  constructor(count = 0, storage = {}) {
+    this.count = count;
+    this.storage = storage;
   }
 
   push(value) {

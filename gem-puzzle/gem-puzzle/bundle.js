@@ -96,15 +96,18 @@
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _model_game_model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./model/game-model */ "./src/model/game-model.js");
-/* harmony import */ var _presentor_game_presenter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./presentor/game-presenter */ "./src/presentor/game-presenter.js");
+/* harmony import */ var _model_score_model__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./model/score-model */ "./src/model/score-model.js");
+/* harmony import */ var _presentor_game_presenter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./presentor/game-presenter */ "./src/presentor/game-presenter.js");
+
 
 
 
 const bodyElement = document.querySelector(`body`);
 
 const gameModel = new _model_game_model__WEBPACK_IMPORTED_MODULE_0__["default"]();
+const scoreModel = new _model_score_model__WEBPACK_IMPORTED_MODULE_1__["default"]();
 
-const gamePresenter = new _presentor_game_presenter__WEBPACK_IMPORTED_MODULE_1__["default"](bodyElement, gameModel);
+const gamePresenter = new _presentor_game_presenter__WEBPACK_IMPORTED_MODULE_2__["default"](bodyElement, gameModel, scoreModel);
 
 gamePresenter.init();
 
@@ -138,41 +141,90 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     this._currentGame = [];
     this._statsCurrentGame = {};
     this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"]();
+    this._storage = window.localStorage;
 
+    // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
+    this._notify = this._notify.bind(this);
+    this.completeGame = this.completeGame.bind(this);
   }
 
   init(options) {
-    this._voidValue = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["getVoidPosition"])(options.size);
-    const gameGraph = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["returnGameGraph"])(options.size);
-    this._statsCurrentGame.startTime = new Date();
-    this._statsCurrentGame.countMoves = 0;
-    this.measuringTime();
+    this._statsCurrentGame.surrender = false;
+    if (options === `load`) {
+      this.loadGame();
+      this._voidValue = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["getVoidPosition"])(this._currentGameOptions.size);
+      this.measuringTime();
+    } else {
+      this._currentGameOptions = options;
+      this._voidValue = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["getVoidPosition"])(options.size);
+      const gameGraph = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["generateGraph"])(parseInt(options.size, 10));
 
-    this._currentGame = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["shuffleGame"])(gameGraph.slice(),
-      options.numberOfMixes,
-      this._logGame, this._voidValue);
+      this._statsCurrentGame.startTime = new Date();
+      this._statsCurrentGame.countMoves = 0;
+      this.measuringTime();
+
+      this._currentGame = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["shuffleGame"])(gameGraph,
+        _utils_const__WEBPACK_IMPORTED_MODULE_4__["NUMBER_OF_PERMUTATIONS"][options.size],
+        this._logGame, this._voidValue);
+      this.saveGame();
+    }
+  }
+
+  checkSave() {
+    // проверяем наличие всех данных для игры в LocalStorage
+    return (JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`)) !== null
+      && JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`)) !== null
+      && JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`)) !== null
+      && JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`)) !== null
+    );
+  }
+
+  loadGame() {
+    // тут огород что бы заного записать данные из строк в действующие объекты
+    this._currentGame = JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`));
+    this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
+    const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
+    this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"](logObject.count, logObject.storage);
+    const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`))
+    this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
+    this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
+    this._statsCurrentGame.endTime = new Date();
+    const rewoundTime = this._statsCurrentGame.endTime.getTime()
+      - statsCurrentGameObject.durationGame;
+    this._statsCurrentGame.startTime = new Date(rewoundTime);
   }
 
   restart(updateType, update) {
+
     // скидывание лога
     this._logGame.clear();
+    this._currentGame = [];
+    this._statsCurrentGame.surrender = false;
+    this._currentGameOptions = update;
     // скидывание счетчика и таймера в модели
     this._statsCurrentGame.countMoves = 0;
     this._statsCurrentGame.startTime = new Date();
 
     this._voidValue = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["getVoidPosition"])(update.size);
-    const gameGraph = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["returnGameGraph"])(update.size);
+    const gameGraph = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["generateGraph"])(parseInt(update.size, 10));
+
     // генерации новой игры с учетом принятых опций
-    this._currentGame = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["shuffleGame"])(gameGraph.slice(),
-      update.numberOfMixes,
+    this._currentGame = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["shuffleGame"])(gameGraph,
+      _utils_const__WEBPACK_IMPORTED_MODULE_4__["NUMBER_OF_PERMUTATIONS"][update.size],
       this._logGame, this._voidValue);
+    // удаляем данные старой игры записываем новую
+    this.saveGame();
 
     this._notify(updateType, update);
   }
 
   getGame() {
     return this._currentGame;
+  }
+
+  getCurrentGameOptions() {
+    return this._currentGameOptions;
   }
 
   updateGame(updateType, update) {
@@ -186,50 +238,104 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
       return el.value === +update;
     });
     // проверяем доступность перемещения для полученного значения
-
     if (!this._currentGame[voidPosition].allowedOffset.includes(updatePosition)) {
       return;
     }
 
-    // // меняем местами значения пустого и полученной позиции
+    // меняем местами значения пустого и полученной позиции
     this._currentGame[voidPosition].value = this._currentGame[updatePosition].value;
     this._currentGame[updatePosition].value = voidValue;
 
-    // считаем ходы пользователя
-    this._statsCurrentGame.countMoves += 1;
-    // // пишем все перемещения в стэк
-    this._logGame.push([voidPosition, updatePosition]);
-    // console.log(`It is win = ${this.checkWin()}`)
+    // действия в блоке выполняются покуда пользователь не выбросил белый флаг
+    // разрыв в блоке так себе выглядит
+    if (!this._statsCurrentGame.surrender) {
+      // считаем ходы пользователя
+      this._statsCurrentGame.countMoves += 1;
+    }
 
-    // отправляем измененые параметры в презентор
+    // готовим измененые параметры для отправки в презентор
     const updateAll = {
       numberBone: update,
       count: this._statsCurrentGame.countMoves,
     };
+
+    if (!this._statsCurrentGame.surrender) {
+      // // пишем все номера перемещаемых костяшек по порядку в стэк
+      this._logGame.push(update);
+      // сэйвим игру по ходам
+      this.saveGame();
+      this.checkWin();
+      this._notify(updateType, updateAll);
+      return;
+    }
+
     this._notify(updateType, updateAll);
   }
 
   measuringTime(updateType = _utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].MEASURING_TIME) {
-    const currentTime = new Date();
-    this._gameDuration = new Date(currentTime.getTime() - this._statsCurrentGame.startTime.getTime());
+    // самозацикленные часики
+    this.saveGame();
+    this._statsCurrentGame.endTime = new Date();
+    this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
+      - this._statsCurrentGame.startTime.getTime();
 
-    this._notify(updateType, this._gameDuration);
+    this._notify(updateType, this._statsCurrentGame.durationGame);
 
     setTimeout(this.measuringTime, 1000);
   }
 
   completeGame() {
-    this._currentGame = Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_1__["stirBackGame"])(this._currentGame, this._logGame);
+    // меняю флаг что бы обработать выигрыш компьютера, использую метод модели updateGame
+    // дабы менять и состояние игры в данных и в представлении
+    this._statsCurrentGame.surrender = true;
+    if (this._logGame.size() === 0) {
+      // по завршению авторешения чистим сторадж с сохраненой игрой
+      // кидаем проверку на конец игры => будет выкинут попап с предложением попробовать еще раз
+      // также результат автозавершения не пишется в рекорды
+      // переключаем флаг что пользователь сдался обратно
+      this.clearSaveGame();
+      this.checkWin();
+      this._statsCurrentGame._surrender = false;
+      return;
+    }
+
+    // берем индекс обратной размотки по одному из нашего стэка
+    const swapIndex = this._logGame.pop();
+    this.updateGame(_utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].MOVING, swapIndex);
+
+    // таймаут в длину анимации хода, что бы можно было смотреть анимированное завершение игры
+    setTimeout(this.completeGame, 510);
   }
 
   checkWin() {
     let isWin = true;
+    // пробегаем по полю игры сравнивая состояния положений ячеек и значений лежащих в них
     this._currentGame.forEach((currentElement) => {
       if (currentElement.posFix !== currentElement.value) {
         isWin = false;
       }
     });
-    return isWin;
+    if (isWin) {
+      // прокидываю стату в обработку завершения игры в стате данные
+      // о том пользователь сам выиграл или за него доигрывали
+      this._notify(_utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].WIN, this._statsCurrentGame);
+    }
+  }
+
+  saveGame() {
+    // метод сохраняет данные текущей игры в LocalStorage
+    this._storage.setItem(`theStateOfTheCurrentGameIsWrittenHere`, JSON.stringify(this._currentGame));
+    this._storage.setItem(`optionsForTheGameAreStoredHere`, JSON.stringify(this._currentGameOptions));
+    this._storage.setItem(`hereIsTheLogOfTheCurrentGame`, JSON.stringify(this._logGame));
+    this._storage.setItem(`hereIsTheStatisticsOfTheCurrentGame`, JSON.stringify(this._statsCurrentGame));
+  }
+
+  clearSaveGame() {
+    // метод очищает данные игры => перезаписывая данные в LocalStorage на null
+    this._storage.setItem(`theStateOfTheCurrentGameIsWrittenHere`, JSON.stringify(null));
+    this._storage.setItem(`optionsForTheGameAreStoredHere`, JSON.stringify(null));
+    this._storage.setItem(`hereIsTheLogOfTheCurrentGame`, JSON.stringify(null));
+    this._storage.setItem(`hereIsTheStatisticsOfTheCurrentGame`, JSON.stringify(null));
   }
 }
 
@@ -269,6 +375,77 @@ class Observer {
 
 /***/ }),
 
+/***/ "./src/model/score-model.js":
+/*!**********************************!*\
+  !*** ./src/model/score-model.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ScoreModel; });
+/* harmony import */ var _observer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./observer */ "./src/model/observer.js");
+
+
+class ScoreModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    super();
+    this._storage = window.localStorage;
+
+    this._score = {};
+  }
+
+  _setStorage() {
+    this._storage.setItem(`theseAreTheTopWinnersInSuperTagging`, JSON.stringify(this._score));
+  }
+
+  getStorage() {
+    // подстраховка кидаю проверку была ли загрузка уже на этом компьютере если нет задаю обнуляю
+    // хранилище рекордов по используемому ключу что бы исключить возможность
+    //  что под этим ключом записано что-то не этим приложением
+    if (this._storage.getItem(`initiaDownload//.12//32/1oxhht:amde;;quiasskojHnae,K`) !== `yes`) {
+      this._storage.setItem(`theseAreTheTopWinnersInSuperTagging`, null);
+      this._storage.setItem(`initiaDownload//.12//32/1oxhht:amde;;quiasskojHnae,K`, `yes`);
+    }
+
+    if (JSON.parse(this._storage.getItem(`theseAreTheTopWinnersInSuperTagging`)) === null) {
+      this._score = {
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+        7: [],
+        8: [],
+      };
+      return;
+    }
+
+    this._score = JSON.parse(this._storage.getItem(`theseAreTheTopWinnersInSuperTagging`));
+  }
+
+  getScore() {
+    return this._score;
+  }
+
+  updateStorage(sizeGame, stats) {
+    const currentSizeResult = this._score[sizeGame];
+    currentSizeResult.push({
+      countMoves: stats.countMoves,
+      durationGame: stats.durationGame,
+    });
+    currentSizeResult.sort((first, second) => {
+      return first.countMoves - second.countMoves;
+    });
+    this._score[sizeGame] = currentSizeResult.slice(0, 10);
+
+    this._setStorage();
+  }
+}
+
+
+/***/ }),
+
 /***/ "./src/presentor/game-presenter.js":
 /*!*****************************************!*\
   !*** ./src/presentor/game-presenter.js ***!
@@ -281,24 +458,31 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePresenter; });
 /* harmony import */ var _utils_const__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/const */ "./src/utils/const.js");
 /* harmony import */ var _view_game_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../view/game-view */ "./src/view/game-view.js");
-/* harmony import */ var _view_control_panel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../view/control-panel */ "./src/view/control-panel.js");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.js");
+/* harmony import */ var _view_score_view__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../view/score-view */ "./src/view/score-view.js");
+/* harmony import */ var _view_control_panel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../view/control-panel */ "./src/view/control-panel.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.js");
+
 
 
 
 
 
 class GamePresenter {
-  constructor(gameContainer, gameModel) {
+  constructor(gameContainer, gameModel, scoreModel) {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
+    this._scoreModel = scoreModel;
+    // используется по факту для самого первого запуска
     this._optionGame = {
       size: `4`,
-      numberOfMixes: 100,
+      // numberOfMixes: 20,
       startTime: new Date(),
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
+    this._handleScoreClick = this._handleScoreClick.bind(this);
+    this._handleHelpGameClick = this._handleHelpGameClick.bind(this);
+    this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
     this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
     this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
@@ -310,29 +494,52 @@ class GamePresenter {
 
   init() {
     this._renderControlPanel();
-    this._gameModel.init(this._optionGame);
-    this._renderGame();
+    if (this._gameModel.checkSave()) {
+      this._gameModel.init(`load`);
+      this._renderLoadGame();
+    } else {
+      this._gameModel.init(this._optionGame);
+      this._renderNewGame();
+    }
+
+    this._scoreModel.getStorage();
   }
 
   _renderControlPanel() {
-    this._controlPanelComponent = new _view_control_panel__WEBPACK_IMPORTED_MODULE_2__["default"]();
+    this._controlPanelComponent = new _view_control_panel__WEBPACK_IMPORTED_MODULE_3__["default"]();
 
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["render"])(this._gameContainer,
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer,
       this._controlPanelComponent.getElement(),
       _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].AFTERBEGIN);
     this._setHandlersControlPanel();
   }
 
-  _renderGame() {
+  _renderNewGame() {
     this._gameComponent = new _view_game_view__WEBPACK_IMPORTED_MODULE_1__["default"](this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
     this._setHandlersGameComponent();
+  }
+
+  _renderLoadGame() {
+    this._gameComponent = new _view_game_view__WEBPACK_IMPORTED_MODULE_1__["default"](this._gameModel.getGame(),
+      this._gameModel.getCurrentGameOptions());
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    this._setHandlersGameComponent();
+  }
+
+  _renderScore() {
+    this._scoreComponent = new _view_score_view__WEBPACK_IMPORTED_MODULE_2__["default"](this._scoreModel.getScore(), this._optionGame.size);
+
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._scoreComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    this._setHandlersScoreComponent();
   }
 
   _setHandlersControlPanel() {
     this._controlPanelComponent.setNewGameClickHandler(this._handleNewGameClick);
     this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
+    this._controlPanelComponent.setScoreClickHandler(this._handleScoreClick);
+    this._controlPanelComponent.setHelpGameClickHandler(this._handleHelpGameClick);
   }
 
   _setHandlersGameComponent() {
@@ -340,9 +547,28 @@ class GamePresenter {
     this._gameComponent.setBoneDragDropHandler(this._handleBoneDragDrop);
   }
 
+  _setHandlersScoreComponent() {
+    this._scoreComponent.setCloseScoreClickHandler(this._handleScoreCloseClick);
+  }
+
   _handleNewGameClick(evt) {
     evt.preventDefault();
     this._handleViewAction(_utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].NEW_GAME, _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].RESTART, this._optionGame);
+  }
+
+  _handleScoreClick(evt) {
+    evt.preventDefault();
+    this._renderScore();
+  }
+
+  _handleScoreCloseClick(evt) {
+    evt.preventDefault();
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["remove"])(this._scoreComponent);
+  }
+
+  _handleHelpGameClick(evt) {
+    evt.preventDefault();
+    this._handleViewAction(_utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].SHOW_HOW_WIN, _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].SURRENDER);
   }
 
   _handleSizeChange(evt) {
@@ -361,7 +587,6 @@ class GamePresenter {
     const targetDrag = evt.target;
     const container = this._gameComponent.getElement();
     const dropTargetCoords = this._gameComponent.getElement().querySelector(`.zero`).getBoundingClientRect();
-
     let startCoords = {
       x: evt.clientX,
       y: evt.clientY,
@@ -432,8 +657,9 @@ class GamePresenter {
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].NEW_GAME:
         this._gameModel.restart(updateType, update);
         break;
-      // case UserAction.*****:
-      //   break;
+      case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].SHOW_HOW_WIN:
+        this._gameModel.completeGame();
+        break;
       // case UserAction.******:
       //   break;
     }
@@ -446,8 +672,8 @@ class GamePresenter {
         this._controlPanelComponent.updateCounter(data.count);
         break;
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].RESTART:
-        Object(_utils_utils__WEBPACK_IMPORTED_MODULE_3__["remove"])(this._gameComponent);
-        this._renderGame();
+        Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["remove"])(this._gameComponent);
+        this._renderNewGame();
         // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
         this._controlPanelComponent.updateCounter();
         this._controlPanelComponent.updateTime();
@@ -455,7 +681,13 @@ class GamePresenter {
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].MEASURING_TIME:
         this._controlPanelComponent.updateTime(data);
         break;
-
+      case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].WIN:
+        if (!data.surrender) {
+          // обновляем только если пользователь сам выиграл
+          this._scoreModel.updateStorage(this._optionGame.size, data);
+        }
+        this._gameComponent.showEndGame(data);
+        break;
     }
   }
 }
@@ -467,7 +699,7 @@ class GamePresenter {
 /*!****************************!*\
   !*** ./src/utils/const.js ***!
   \****************************/
-/*! exports provided: UserAction, UpdateType, RenderPosition, ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight */
+/*! exports provided: UserAction, UpdateType, RenderPosition, NUMBER_OF_PERMUTATIONS, ThreeByThree, FourByFour, FiveByFive, SixBySix, SevenBySeven, EightByEight */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -475,6 +707,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UserAction", function() { return UserAction; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UpdateType", function() { return UpdateType; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RenderPosition", function() { return RenderPosition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NUMBER_OF_PERMUTATIONS", function() { return NUMBER_OF_PERMUTATIONS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThreeByThree", function() { return ThreeByThree; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FourByFour", function() { return FourByFour; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FiveByFive", function() { return FiveByFive; });
@@ -484,17 +717,29 @@ __webpack_require__.r(__webpack_exports__);
 const UserAction = {
   SWAP_BONE: `SWAP_BONE`,
   NEW_GAME: `NEW_GAME`,
+  SHOW_HOW_WIN: `SHOW_HOW_WIN`,
 };
 
 const UpdateType = {
   MOVING: `MOVING`,
   RESTART: `RESTART`,
   MEASURING_TIME: `MEASURING_TIME`,
+  WIN: `WIN`,
+  SURRENDER: `SURRENDER`,
 };
 
 const RenderPosition = {
   AFTERBEGIN: `afterbegin`,
   BEFOREEND: `beforeend`,
+};
+
+const NUMBER_OF_PERMUTATIONS = {
+  3: 20,
+  4: 40,
+  5: 60,
+  6: 150,
+  7: 200,
+  8: 250,
 };
 
 const ThreeByThree = [
@@ -728,9 +973,9 @@ const EightByEight = [
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Stack; });
 class Stack {
-  constructor() {
-    this.count = 0;
-    this.storage = {};
+  constructor(count = 0, storage = {}) {
+    this.count = count;
+    this.storage = storage;
   }
 
   push(value) {
@@ -770,17 +1015,13 @@ class Stack {
 /*!**************************************!*\
   !*** ./src/utils/utils-for-model.js ***!
   \**************************************/
-/*! exports provided: shuffleGame, stirBackGame, returnGameGraph */
+/*! exports provided: shuffleGame, generateGraph */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shuffleGame", function() { return shuffleGame; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stirBackGame", function() { return stirBackGame; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "returnGameGraph", function() { return returnGameGraph; });
-/* harmony import */ var _const__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./const */ "./src/utils/const.js");
-
-
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "generateGraph", function() { return generateGraph; });
 const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
   const upper = Math.floor(Math.max(a, b));
@@ -797,54 +1038,76 @@ const shuffleGame = (array, numberOfMixes, log, voidValue) => {
     const swapIndex = getRandomInteger(0, mixedArray[voidPosition].allowedOffset.length - 1);
     // определяем доступное смещение
     const swapPosition = mixedArray[voidPosition].allowedOffset[swapIndex];
+    log.push(mixedArray[swapPosition].value);
     // меняем местами ноль и одну из доступных позиций
     mixedArray[voidPosition].value = mixedArray[swapPosition].value;
     mixedArray[swapPosition].value = voidValue;
-    // пишем все перемещения в стэк
-    log.push([voidPosition, swapPosition]);
+    // пишем все перемещения в стэк старый вариант пока подумать еще над этим
   }
   // возвращаем перемешанную комбинацию
   return mixedArray;
 };
 
-const stirBackGame = (array, log) => {
-  const arrayBack = array.slice();
-  const count = log.size();
-  for (let i = 0; i < count; i += 1) {
-    const swapIndex = log.pop();
+// разматывает саму структуру данных, не визуал, подумать нужно ли
+// export const stirBackGame = (array, log, notify, updateType) => {
+//   const arrayBack = array.slice();
+//   const count = log.size();
+//   for (let i = 0; i < count; i += 1) {
+//     const swapIndex = log.pop();
+//
+//     // notify(updateType, swapIndex[0]);
+//
+//     const swapStorage = arrayBack[swapIndex[0]].value;
+//     arrayBack[swapIndex[0]].value = arrayBack[swapIndex[1]].value;
+//     arrayBack[swapIndex[1]].value = swapStorage;
+//   }
+//   return arrayBack;
+// };
 
-    const swapStorage = arrayBack[swapIndex[0]].value;
-    arrayBack[swapIndex[0]].value = arrayBack[swapIndex[1]].value;
-    arrayBack[swapIndex[1]].value = swapStorage;
-  }
-  return arrayBack;
-};
+// Функции для генерации стартовых графов.
+// граф представляет собой массив объектов с тремя значениями.
+// первое значение позиция клетки на игровом поле.
+// второе значение - значение костяшки занимающей данную позицию.
+// третье значение - массив содержаший список возможных перемещений
+// с данной точки по правилам пятнашек.
+const generateGraph = (size) => {
+  const initialArray = (() => {
+    const array = [];
+    for (let i = 0; i < size ** 2; i += 1) {
+      array.push(i);
+    }
+    return array;
+  })();
 
-const returnGameGraph = (size) => {
-  let gameGraph;
-  switch (size) {
-    case `3`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["ThreeByThree"];
-      break;
-    case `4`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["FourByFour"];
-      break;
-    case `5`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["FiveByFive"];
-      break;
-    case `6`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["SixBySix"];
-      break;
-    case `7`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["SevenBySeven"];
-      break;
-    case `8`:
-      gameGraph = _const__WEBPACK_IMPORTED_MODULE_0__["EightByEight"];
-      break;
-    default:
-      throw new Error(`not received Game Graph`);
-  }
-  return gameGraph;
+  return initialArray.reduce((acc, cur, i, array) => {
+    const accessiblePaths = [];
+    if (cur % size === size - 1) {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur - 1);
+    } else if (cur % size === 0) {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur + 1);
+    } else {
+      accessiblePaths.push(cur + size);
+      accessiblePaths.push(cur - size);
+      accessiblePaths.push(cur + 1);
+      accessiblePaths.push(cur - 1);
+    }
+
+
+    const accessiblePathsFilters = accessiblePaths.filter((current) => {
+      return (current >= 0 && current < array.length);
+    });
+
+    acc.push({
+      posFix: cur,
+      value: cur,
+      allowedOffset: accessiblePathsFilters.sort(),
+    });
+    return acc;
+  }, []);
 };
 
 
@@ -854,7 +1117,7 @@ const returnGameGraph = (size) => {
 /*!****************************!*\
   !*** ./src/utils/utils.js ***!
   \****************************/
-/*! exports provided: createElement, render, remove, getVoidPosition, formatTimeByHuman */
+/*! exports provided: createElement, render, remove, getVoidPosition, formatGameDuration */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -863,7 +1126,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "remove", function() { return remove; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getVoidPosition", function() { return getVoidPosition; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formatTimeByHuman", function() { return formatTimeByHuman; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formatGameDuration", function() { return formatGameDuration; });
 /* harmony import */ var _const__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./const */ "./src/utils/const.js");
 /* harmony import */ var _view_absctract_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../view/absctract-view */ "./src/view/absctract-view.js");
 
@@ -905,9 +1168,28 @@ const getVoidPosition = (size) => {
   return parseInt(size, 10) ** 2 - 1;
 };
 
-const formatTimeByHuman = (date) => {
-  return date.toLocaleString(`en-US`, { minute: `2-digit`, second: `2-digit` });
+const addZero = (number) => {
+  let numberCurrent = String(number);
+  const twoDigit = 2;
+  if (numberCurrent.length === twoDigit) {
+    return number;
+  }
+  numberCurrent = `0${number}`;
+  return numberCurrent;
 };
+
+const formatGameDuration = (duration) => {
+  const hour = Math.floor((duration / (1000 * 60 * 60)) % 60);
+  const minute = Math.floor((duration / (1000 * 60)) % 60);
+  const seconds = Math.floor((duration / (1000)) % 60);
+  if (hour !== 0) {
+    return `${addZero(hour)}:${addZero(minute)}:${addZero(seconds)}`;
+  }
+
+  return `${addZero(minute)}:${addZero(seconds)}`;
+};
+
+
 
 
 /***/ }),
@@ -977,6 +1259,8 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     this._timeContainer = this.getElement().querySelector(`.control-panel__time`);
 
     this._newGameClickHandler = this._newGameClickHandler.bind(this);
+    this._scoreClickHandler = this._scoreClickHandler.bind(this);
+    this._helpGameClickHandler = this._helpGameClickHandler.bind(this);
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
   }
 
@@ -1032,10 +1316,9 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
                 <div class="control-panel__time-container">
                 Time: <span class="control-panel__time">00:00</span>
                 </div>
+                <button class="control-panel__score">Score</button>
               </div>
-
-
-
+              <button class="control-panel__end-game">Do it for me</button>
             </div>`;
   }
 
@@ -1044,8 +1327,13 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     this._countContainer.innerHTML = this._count;
   }
 
-  updateTime(time = new Date(0)) {
-    this._timeContainer.innerHTML = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatTimeByHuman"])(time);
+  updateTime(duration = `00:00`) {
+    if (typeof duration !== `number`) {
+      this._timeContainer.innerHTML = `00:00`;
+      return;
+    }
+
+    this._timeContainer.innerHTML = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(duration);
   }
 
   _newGameClickHandler(evt) {
@@ -1056,6 +1344,26 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
   setNewGameClickHandler(callback) {
     this._callback.newGameClickHandler = callback;
     this.getElement().querySelector(`.control-panel__new-game`).addEventListener(`click`, this._newGameClickHandler);
+  }
+
+  _scoreClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.scoreClickHandler(evt);
+  }
+
+  setScoreClickHandler(callback) {
+    this._callback.scoreClickHandler = callback;
+    this.getElement().querySelector(`.control-panel__score`).addEventListener(`click`, this._scoreClickHandler);
+  }
+
+  _helpGameClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.helpGameClickHandler(evt);
+  }
+
+  setHelpGameClickHandler(callback) {
+    this._callback.helpGameClickHandler = callback;
+    this.getElement().querySelector(`.control-panel__end-game`).addEventListener(`click`, this._helpGameClickHandler);
   }
 
   _sizeChangeHandler(evt) {
@@ -1088,7 +1396,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const getTemlateBones = (data, size) => {
-  // console.log(data)
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
               class="bone_x${size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(size) ? `zero` : ``}"
@@ -1111,7 +1418,18 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   _getTemplate() {
     return `<div class="container_x${this._size} bones">
     ${getTemlateBones(this._game, this._size)}
+    <div class="popup_end-game visually-hidden">123456</div>
   </div>`;
+  }
+
+  showEndGame(stats) {
+    const endElement = this.getElement().querySelector(`.popup_end-game`);
+    endElement.classList.remove(`visually-hidden`);
+    if (!stats.surrender) {
+      endElement.innerHTML = `<p>Ура! Вы решили головоломку за ${Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(stats.durationGame)} и ${stats.countMoves} ходов</p>`;
+    } else {
+      endElement.innerHTML = `<p>Бездушная машина справилась с задачей, но не огорчайтесь.<br> Попробуйте еще раз (:</p>`;
+    }
   }
 
   swapBone(swapElement) {
@@ -1155,6 +1473,129 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   setBoneDragDropHandler(callback) {
     this._callback.boneDragDrop = callback;
     this.getElement().addEventListener(`mousedown`, this._boneDragDropHandler);
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/view/score-view.js":
+/*!********************************!*\
+  !*** ./src/view/score-view.js ***!
+  \********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ScoreView; });
+/* harmony import */ var _absctract_view__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./absctract-view */ "./src/view/absctract-view.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.js");
+
+
+
+const generateRecordItems = (score, size) => {
+  if (score[size].length === 0) {
+    return `<li class="score__item-empty">
+              <span class="score__empty-row">Nobody has won this version yet.</span>
+              <span class="score__empty-row">Just do it.</span>
+            </li>`;
+  }
+  return score[size].reduce((acc, cur, i) => {
+    acc += `<li class="score__item">
+              <span class="score__item-number">${i + 1}</span>
+              <span class="score__item-moves">${cur.countMoves}</span>
+              <span class="score__item-duration">${Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(cur.durationGame)}</span>
+            </li>`;
+    return acc;
+  }, `<li class="score__item">
+              <span class="score__item-number">№</span>
+              <span class="score__item-moves">Moves</span>
+              <span class="score__item-duration">Time</span>
+            </li>`);
+};
+
+class ScoreView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(score, size) {
+    super();
+
+    this._score = score;
+    this._size = size;
+
+    this._closeScoreClickHandler = this._closeScoreClickHandler.bind(this);
+    this._changeRecordsByTypeOfGame = this._changeRecordsByTypeOfGame.bind(this);
+
+    this._setHandlers();
+  }
+
+  _getTemplate() {
+    return `<div class="score_wrapper">
+              <div class="score_container">
+              <ul class="score__size-control-list">
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="3" ${this._size === `3` ? `checked` : ``}>
+                    <span class="radio-indicator_score">3X3</span>
+                  </label>
+                </li>
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="4" ${this._size === `4` ? `checked` : ``}>
+                    <span class="radio-indicator_score">4X4</span>
+                  </label>
+                </li>
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="5" ${this._size === `5` ? `checked` : ``}>
+                    <span class="radio-indicator_score">5X5</span>
+                  </label>
+                </li>
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="6" ${this._size === `6` ? `checked` : ``}>
+                    <span class="radio-indicator_score">6X6</span>
+                  </label>
+                </li>
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="7" ${this._size === `7` ? `checked` : ``}>
+                    <span class="radio-indicator_score">7X7</span>
+                  </label>
+                </li>
+                <li class="score__size-item">
+                  <label>
+                    <input class="visually-hidden" type="radio" name="size-score" value="8" ${this._size === `8` ? `checked` : ``}>
+                    <span class="radio-indicator_score">8X8</span>
+                  </label>
+                </li>
+              </ul>
+              <ul class="score__list">
+                ${generateRecordItems(this._score, this._size)}
+              </ul>
+              <div class="score__close-wrapper">
+                <p class="score__close">Close</p>
+              </div>
+
+            </div>
+            </div>`;
+  }
+
+  _setHandlers() {
+    this.getElement().addEventListener(`change`, this._changeRecordsByTypeOfGame);
+  }
+
+  _closeScoreClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.closeScoreClickHandler(evt);
+  }
+
+  setCloseScoreClickHandler(callback) {
+    this._callback.closeScoreClickHandler = callback;
+    this.getElement().querySelector(`.score__close`).addEventListener(`click`, this._closeScoreClickHandler);
+  }
+
+  _changeRecordsByTypeOfGame(evt) {
+    this.getElement().querySelector(`.score__list`).innerHTML = generateRecordItems(this._score, evt.target.value);
   }
 }
 

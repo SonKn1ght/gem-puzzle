@@ -17,6 +17,15 @@ export const RenderPosition = {
   BEFOREEND: `beforeend`,
 };
 
+export const NUMBER_OF_PERMUTATIONS = {
+  3: 20,
+  4: 40,
+  5: 60,
+  6: 150,
+  7: 200,
+  8: 250,
+};
+
 export const ThreeByThree = [
   { posFix: 0, value: 0, allowedOffset: [1, 3] },
   { posFix: 1, value: 1, allowedOffset: [0, 2, 4] },

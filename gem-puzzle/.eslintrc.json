@@ -1,8 +1,8 @@
 {
-//  "env": {
-//    "es6": true,
-//    "browser": true
-//  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
 //  "parserOptions": {
 //    "sourceType": "module",
 //    "ecmaVersion": 2015

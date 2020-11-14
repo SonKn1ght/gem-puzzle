@@ -1,8 +1,7 @@
 import AbstractView from './absctract-view';
-import { getVoidPosition } from '../utils/utils';
+import { getVoidPosition, formatGameDuration } from '../utils/utils';
 
 const getTemlateBones = (data, size) => {
-  // console.log(data)
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
               class="bone_x${size} number_${i} ${cur.value === getVoidPosition(size) ? `zero` : ``}"
@@ -25,11 +24,21 @@ export default class GameView extends AbstractView {
   _getTemplate() {
     return `<div class="container_x${this._size} bones">
     ${getTemlateBones(this._game, this._size)}
+    <div class="popup_end-game visually-hidden">123456</div>
   </div>`;
   }
 
+  showEndGame(stats) {
+    const endElement = this.getElement().querySelector(`.popup_end-game`);
+    endElement.classList.remove(`visually-hidden`);
+    if (!stats.surrender) {
+      endElement.innerHTML = `<p>Ура! Вы решили головоломку за ${formatGameDuration(stats.durationGame)} и ${stats.countMoves} ходов</p>`;
+    } else {
+      endElement.innerHTML = `<p>Бездушная машина справилась с задачей, но не огорчайтесь.<br> Попробуйте еще раз (:</p>`;
+    }
+  }
+
   swapBone(swapElement) {
-    console.log(swapElement)
     // поиск элемента по значению дата-атрибута
     const swapTargetElement = this.getElement().querySelector(`[data-position='${swapElement}']`);
     const swapVoidElement = this.getElement().querySelector(`.zero`);

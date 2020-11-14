@@ -1,4 +1,4 @@
-import { RenderPosition } from './const';
+import {RenderPosition, UserAction} from './const';
 import AbstractView from '../view/absctract-view';
 
 export const createElement = (template) => {
@@ -57,3 +57,5 @@ export const formatGameDuration = (duration) => {
 
   return `${addZero(minute)}:${addZero(seconds)}`;
 };
+
+

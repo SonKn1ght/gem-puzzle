@@ -49,7 +49,7 @@ export default class ScoreModel extends Observer {
     currentSizeResult.sort((first, second) => {
       return first.countMoves - second.countMoves;
     });
-    this._score[sizeGame] = currentSizeResult.slice(0, 10)
+    this._score[sizeGame] = currentSizeResult.slice(0, 10);
 
     this._setStorage();
   }

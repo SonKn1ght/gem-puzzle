@@ -9,9 +9,10 @@ export default class GamePresenter {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
     this._scoreModel = scoreModel;
+    // используется по факту для самого первого запуска
     this._optionGame = {
-      size: `3`,
-      numberOfMixes: 10,
+      size: `4`,
+      // numberOfMixes: 20,
       startTime: new Date(),
     };
 
@@ -30,8 +31,13 @@ export default class GamePresenter {
 
   init() {
     this._renderControlPanel();
-    this._gameModel.init(this._optionGame);
-    this._renderGame();
+    if (this._gameModel.checkSave()) {
+      this._gameModel.init(`load`);
+      this._renderLoadGame();
+    } else {
+      this._gameModel.init(this._optionGame);
+      this._renderNewGame();
+    }
 
     this._scoreModel.getStorage();
   }
@@ -45,9 +51,16 @@ export default class GamePresenter {
     this._setHandlersControlPanel();
   }
 
-  _renderGame() {
+  _renderNewGame() {
     this._gameComponent = new GameView(this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
+    render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
+    this._setHandlersGameComponent();
+  }
+
+  _renderLoadGame() {
+    this._gameComponent = new GameView(this._gameModel.getGame(),
+      this._gameModel.getCurrentGameOptions());
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
     this._setHandlersGameComponent();
   }
@@ -197,7 +210,7 @@ export default class GamePresenter {
         break;
       case UpdateType.RESTART:
         remove(this._gameComponent);
-        this._renderGame();
+        this._renderNewGame();
         // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
         this._controlPanelComponent.updateCounter();
         this._controlPanelComponent.updateTime();
@@ -206,7 +219,11 @@ export default class GamePresenter {
         this._controlPanelComponent.updateTime(data);
         break;
       case UpdateType.WIN:
-        this._scoreModel.updateStorage(this._optionGame.size, data);
+        if (!data.surrender) {
+          // обновляем только если пользователь сам выиграл
+          this._scoreModel.updateStorage(this._optionGame.size, data);
+        }
+        this._gameComponent.showEndGame(data);
         break;
     }
   }
