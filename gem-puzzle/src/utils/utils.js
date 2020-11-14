@@ -1,4 +1,4 @@
-import {RenderPosition, UserAction} from './const';
+import { RenderPosition } from './const';
 import AbstractView from '../view/absctract-view';
 
 export const createElement = (template) => {
@@ -16,6 +16,8 @@ export const render = (container, child, place) => {
     case RenderPosition.BEFOREEND:
       container.append(child);
       break;
+    default:
+      throw new Error(`something broke in render function`);
   }
 };
 
@@ -57,5 +59,3 @@ export const formatGameDuration = (duration) => {
 
   return `${addZero(minute)}:${addZero(seconds)}`;
 };
-
-

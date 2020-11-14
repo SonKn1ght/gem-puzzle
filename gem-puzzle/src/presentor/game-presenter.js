@@ -12,7 +12,6 @@ export default class GamePresenter {
     // используется по факту для самого первого запуска
     this._optionGame = {
       size: `4`,
-      // numberOfMixes: 20,
       startTime: new Date(),
     };
 
@@ -197,8 +196,8 @@ export default class GamePresenter {
       case UserAction.SHOW_HOW_WIN:
         this._gameModel.completeGame();
         break;
-      // case UserAction.******:
-      //   break;
+      default:
+        throw new Error(`something broke in handleViewAction`);
     }
   }
 
@@ -225,6 +224,8 @@ export default class GamePresenter {
         }
         this._gameComponent.showEndGame(data);
         break;
+      default:
+        throw new Error(`something broke in handleModelEvent`);
     }
   }
 }

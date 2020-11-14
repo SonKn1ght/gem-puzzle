@@ -72,7 +72,6 @@ export const generateGraph = (size) => {
       accessiblePaths.push(cur - 1);
     }
 
-
     const accessiblePathsFilters = accessiblePaths.filter((current) => {
       return (current >= 0 && current < array.length);
     });

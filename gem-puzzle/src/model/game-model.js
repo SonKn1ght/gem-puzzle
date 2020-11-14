@@ -55,7 +55,7 @@ export default class GameModel extends Observer {
     this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
     const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
     this._logGame = new Stack(logObject.count, logObject.storage);
-    const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`))
+    const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`));
     this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
     this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
     this._statsCurrentGame.endTime = new Date();
@@ -65,7 +65,6 @@ export default class GameModel extends Observer {
   }
 
   restart(updateType, update) {
-
     // скидывание лога
     this._logGame.clear();
     this._currentGame = [];
