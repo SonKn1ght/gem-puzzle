@@ -1,10 +1,10 @@
 import AbstractView from './absctract-view';
-import { getVoidPosition, formatGameDuration } from '../utils/utils';
+import { getVoidPosition, formatGameDuration, extractFirstClass, extractClassesExceptFirst } from '../utils/utils';
 
 const getTemlateBones = (data, size) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
-              class="bone_x${size} number_${i} ${cur.value === getVoidPosition(size) ? `zero` : ``}"
+              class="bone_img-${cur.value} bone_x${size} number_${i} ${cur.value === getVoidPosition(size) ? `zero` : ``}"
               data-position="${cur.value}">${cur.value + 1}</div>`;
   }, ``);
 };
@@ -43,11 +43,14 @@ export default class GameView extends AbstractView {
     const swapTargetElement = this.getElement().querySelector(`[data-position='${swapElement}']`);
     const swapVoidElement = this.getElement().querySelector(`.zero`);
 
-    const swapTargetElementClass = swapTargetElement.classList.value;
-    const swapVoidElementClass = swapVoidElement.classList.value;
+    const swapTargetElementClassImg = extractFirstClass(swapTargetElement.classList.value);
+    const swapVoidElementClassImg = extractFirstClass(swapVoidElement.classList.value);
 
-    swapTargetElement.className = swapVoidElementClass;
-    swapVoidElement.className = swapTargetElementClass;
+    const swapTargetElementClass = extractClassesExceptFirst(swapTargetElement.classList.value);
+    const swapVoidElementClass = extractClassesExceptFirst(swapVoidElement.classList.value);
+
+    swapTargetElement.className = `${swapTargetElementClassImg} ${swapVoidElementClass}`;
+    swapVoidElement.className = `${swapVoidElementClassImg} ${swapTargetElementClass}`;
 
     swapTargetElement.classList.toggle(`zero`);
     swapVoidElement.classList.toggle(`zero`);

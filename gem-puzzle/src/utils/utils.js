@@ -59,3 +59,11 @@ export const formatGameDuration = (duration) => {
 
   return `${addZero(minute)}:${addZero(seconds)}`;
 };
+
+export const extractFirstClass = (str) => {
+  return str.slice(0, str.indexOf(` `));
+};
+
+export const extractClassesExceptFirst = (str) => {
+  return str.slice(str.indexOf(` `) + 1, str.length);
+};
