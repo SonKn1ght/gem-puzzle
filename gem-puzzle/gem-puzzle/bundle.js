@@ -297,7 +297,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   completeGame() {
-    if (this._statsCurrentGame.surrender === false)  {
+    if (this._statsCurrentGame.surrender === false) {
       this._logGame.optimize();
     }
 
@@ -325,7 +325,6 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   checkWin() {
-
     let isWin = true;
     // пробегаем по полю игры сравнивая состояния положений ячеек и значений лежащих в них
     this._currentGame.forEach((currentElement) => {
@@ -528,7 +527,6 @@ class GamePresenter {
     } else {
       this._gameModel.init(this._optionGame);
       this._renderNewGame();
-
     }
 
     this._scoreModel.getStorage();
@@ -1073,7 +1071,7 @@ class Stack {
         acc.push(+cur);
         return acc;
       }
-      if (cur == acc[acc.length -1]) {
+      if (parseInt(cur, 10) === parseInt(acc[acc.length - 1], 10)) {
         acc.pop();
         return acc;
       }
@@ -1578,11 +1576,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const getTemlateBones = (data, options) => {
+const getTemlateBones = (data, options, background) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
               class="bone_img-${cur.value} bone_x${options.size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(options.size) ? `zero` : ``}"
-              data-position="${cur.value}" style="background-image: url('${options.background}');">${cur.value + 1}</div>`;
+              data-position="${cur.value}" style="${background}">${cur.value + 1}</div>`;
   }, ``);
 };
 
@@ -1599,11 +1597,15 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   _getTemplate() {
+    let inlineBackground = ``;
+    if (this._options.background != null) {
+      inlineBackground = `background-image: url('${this._options.background}');`;
+    }
     return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
-              style="background-image: url('${this._options.background}');"
+              style="${inlineBackground}');"
               >
-    ${getTemlateBones(this._game, this._options)}
-    <div class="popup_end-game visually-hidden" style="background-image: url('${this._options.background}');"></div>
+    ${getTemlateBones(this._game, this._options, inlineBackground)}
+    <div class="popup_end-game visually-hidden" style="${inlineBackground}"></div>
   </div>`;
   }
 

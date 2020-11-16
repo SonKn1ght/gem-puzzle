@@ -29,7 +29,7 @@ export default class Stack {
         acc.push(+cur);
         return acc;
       }
-      if (cur == acc[acc.length -1]) {
+      if (parseInt(cur, 10) === parseInt(acc[acc.length - 1], 10)) {
         acc.pop();
         return acc;
       }

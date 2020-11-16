@@ -166,7 +166,7 @@ export default class GameModel extends Observer {
   }
 
   completeGame() {
-    if (this._statsCurrentGame.surrender === false)  {
+    if (this._statsCurrentGame.surrender === false) {
       this._logGame.optimize();
     }
 
@@ -194,7 +194,6 @@ export default class GameModel extends Observer {
   }
 
   checkWin() {
-
     let isWin = true;
     // пробегаем по полю игры сравнивая состояния положений ячеек и значений лежащих в них
     this._currentGame.forEach((currentElement) => {

@@ -44,7 +44,6 @@ export default class GamePresenter {
     } else {
       this._gameModel.init(this._optionGame);
       this._renderNewGame();
-
     }
 
     this._scoreModel.getStorage();

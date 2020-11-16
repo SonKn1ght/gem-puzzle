@@ -3,15 +3,13 @@
     "es6": true,
     "browser": true
   },
-//  "parserOptions": {
-//    "sourceType": "module",
-//    "ecmaVersion": 2015
-//  },
   "extends": [
   "airbnb-base"
   ],
   "rules": {
-    "no-param-reassign": "warn",
+    "class-methods-use-this": "off",
+    "import/no-cycle": "off",
+    "no-param-reassign": "off",
     "no-underscore-dangle": "off",
     "quotes": ["error", "backtick"],
     "arrow-body-style": ["error", "always"]

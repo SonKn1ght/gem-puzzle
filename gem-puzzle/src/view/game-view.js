@@ -1,11 +1,13 @@
 import AbstractView from './absctract-view';
-import { getVoidPosition, formatGameDuration, extractFirstClass, extractClassesExceptFirst } from '../utils/utils';
+import {
+  getVoidPosition, formatGameDuration, extractFirstClass, extractClassesExceptFirst,
+} from '../utils/utils';
 
-const getTemlateBones = (data, options) => {
+const getTemlateBones = (data, options, background) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
               class="bone_img-${cur.value} bone_x${options.size} number_${i} ${cur.value === getVoidPosition(options.size) ? `zero` : ``}"
-              data-position="${cur.value}" style="background-image: url('${options.background}');">${cur.value + 1}</div>`;
+              data-position="${cur.value}" style="${background}">${cur.value + 1}</div>`;
   }, ``);
 };
 
@@ -22,11 +24,15 @@ export default class GameView extends AbstractView {
   }
 
   _getTemplate() {
+    let inlineBackground = ``;
+    if (this._options.background != null) {
+      inlineBackground = `background-image: url('${this._options.background}');`;
+    }
     return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
-              style="background-image: url('${this._options.background}');"
+              style="${inlineBackground}');"
               >
-    ${getTemlateBones(this._game, this._options)}
-    <div class="popup_end-game visually-hidden" style="background-image: url('${this._options.background}');"></div>
+    ${getTemlateBones(this._game, this._options, inlineBackground)}
+    <div class="popup_end-game visually-hidden" style="${inlineBackground}"></div>
   </div>`;
   }
 
