@@ -109,6 +109,8 @@ body {
 }
 
 .control-panel__give-background {
+  box-sizing: border-box;
+  width: 160px;
   margin: 10px;
 }
 
@@ -477,7 +479,7 @@ body {
 
 .score__close {
   display: block;
-  width: 100px;
+  width: 200px;
   margin-left: auto;
   text-align: center;
 
@@ -2752,4 +2754,13 @@ body {
 
 .container_font-size-zero {
   font-size: 0;
+}
+
+.lock-app {
+  position: absolute;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+  background-color: transparent;
 }

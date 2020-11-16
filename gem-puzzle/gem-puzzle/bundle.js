@@ -712,6 +712,8 @@ class GamePresenter {
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].SHOW_HOW_WIN:
         // запускает процесс автозавершения в модели
         this._gameModel.completeGame();
+        // кидаем lock на приложение на период автозавершения
+        this._controlPanelComponent.lockPage();
         break;
       default:
         throw new Error(`something broke in handleViewAction`);
@@ -733,6 +735,7 @@ class GamePresenter {
         // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
         this._controlPanelComponent.updateCounter();
         this._controlPanelComponent.updateTime();
+        this._controlPanelComponent.unlockPage();
         break;
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].MEASURING_TIME:
         this._controlPanelComponent.updateTime(data);
@@ -743,6 +746,7 @@ class GamePresenter {
           this._scoreModel.updateStorage(this._optionGame.size, data);
         }
         this._gameComponent.showEndGame(data);
+        this._controlPanelComponent.unlockPage();
         break;
       default:
         throw new Error(`something broke in handleModelEvent`);
@@ -1364,7 +1368,7 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
                 <button class="control-panel__new-game btn">Старт</button>
                 <button class="control-panel__setting-new-game-button btn">Опции новой игры</button>
                 <div class="control-panel__hidden-options visually-hidden">
-                                  <button class="control-panel__give-background btn ">Без картины</button>
+                                  <button class="control-panel__give-background btn ">Игра без картины</button>
                 <ul class="control-panel__size-control-list ">
                   <li class="control-panel__size-item">
                     <label>
@@ -1421,6 +1425,7 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
                 <button class="control-panel__switch-numbers btn">Числа<br> убрать</button>
               </div>
               <audio id="sound" src="./assets/sounds/Sound.mp3"></audio>
+              <div class="lock-app visually-hidden"></div>
             </div>`;
   }
 
@@ -1451,6 +1456,17 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     }
   }
 
+  // блокировщик на время автокомплита
+  lockPage() {
+    this.getElement().querySelector(`.lock-app`).classList.remove(`visually-hidden`);
+  }
+
+  unlockPage() {
+    if (!this.getElement().querySelector(`.lock-app`).classList.contains(`visually-hidden`)) {
+      this.getElement().querySelector(`.lock-app`).classList.add(`visually-hidden`);
+    }
+  }
+
   // внутренние ставим пачкой сразу
   _setInnerHandlers() {
     this.getElement().querySelector(`.control-panel__give-background`).addEventListener(`click`, this._handleGiveBackgroundView);
@@ -1463,10 +1479,10 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
   // сначала внутренние обработчики, отвечающие только за режимы внешнего вида
   _handleGiveBackgroundView(evt) {
     evt.preventDefault();
-    if (evt.target.innerHTML === `Без картины`) {
-      evt.target.innerHTML = `С картиной`;
+    if (evt.target.innerHTML === `Игра без картины`) {
+      evt.target.innerHTML = `Игра с картиной`;
     } else {
-      evt.target.innerHTML = `Без картины`;
+      evt.target.innerHTML = `Игра без картины`;
     }
   }
 
@@ -1592,8 +1608,6 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
     this._game = game;
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);
-
-    this._setInnerHandlers();
   }
 
   _getTemplate() {
@@ -1602,7 +1616,7 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
       inlineBackground = `background-image: url('${this._options.background}');`;
     }
     return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
-              style="${inlineBackground}');"
+              style="${inlineBackground}"
               >
     ${getTemlateBones(this._game, this._options, inlineBackground)}
     <div class="popup_end-game visually-hidden" style="${inlineBackground}"></div>
@@ -1639,10 +1653,6 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   numberDisplaySwitch() {
     this.getElement().classList.toggle(`container_font-size-zero`);
-  }
-
-  _setInnerHandlers() {
-    // this.getElement().addEventListener(`mousedown`, this._boneMousedownHandler);
   }
 
   _boneClickHandler(evt) {
@@ -1767,7 +1777,7 @@ class ScoreView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] 
                 ${generateRecordItems(this._score, this._size)}
               </ul>
               <div class="score__close-wrapper">
-                <p class="score__close btn">Close</p>
+                <p class="score__close btn">Закрыть</p>
               </div>
 
             </div>

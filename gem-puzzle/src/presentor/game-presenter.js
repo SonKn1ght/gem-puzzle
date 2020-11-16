@@ -229,6 +229,8 @@ export default class GamePresenter {
       case UserAction.SHOW_HOW_WIN:
         // запускает процесс автозавершения в модели
         this._gameModel.completeGame();
+        // кидаем lock на приложение на период автозавершения
+        this._controlPanelComponent.lockPage();
         break;
       default:
         throw new Error(`something broke in handleViewAction`);
@@ -250,6 +252,7 @@ export default class GamePresenter {
         // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
         this._controlPanelComponent.updateCounter();
         this._controlPanelComponent.updateTime();
+        this._controlPanelComponent.unlockPage();
         break;
       case UpdateType.MEASURING_TIME:
         this._controlPanelComponent.updateTime(data);
@@ -260,6 +263,7 @@ export default class GamePresenter {
           this._scoreModel.updateStorage(this._optionGame.size, data);
         }
         this._gameComponent.showEndGame(data);
+        this._controlPanelComponent.unlockPage();
         break;
       default:
         throw new Error(`something broke in handleModelEvent`);

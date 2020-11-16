@@ -80,7 +80,7 @@ export default class ScoreView extends AbstractView {
                 ${generateRecordItems(this._score, this._size)}
               </ul>
               <div class="score__close-wrapper">
-                <p class="score__close btn">Close</p>
+                <p class="score__close btn">Закрыть</p>
               </div>
 
             </div>

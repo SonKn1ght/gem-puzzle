@@ -31,7 +31,7 @@ export default class ControlPanelView extends AbstractView {
                 <button class="control-panel__new-game btn">Старт</button>
                 <button class="control-panel__setting-new-game-button btn">Опции новой игры</button>
                 <div class="control-panel__hidden-options visually-hidden">
-                                  <button class="control-panel__give-background btn ">Без картины</button>
+                                  <button class="control-panel__give-background btn ">Игра без картины</button>
                 <ul class="control-panel__size-control-list ">
                   <li class="control-panel__size-item">
                     <label>
@@ -88,6 +88,7 @@ export default class ControlPanelView extends AbstractView {
                 <button class="control-panel__switch-numbers btn">Числа<br> убрать</button>
               </div>
               <audio id="sound" src="./assets/sounds/Sound.mp3"></audio>
+              <div class="lock-app visually-hidden"></div>
             </div>`;
   }
 
@@ -118,6 +119,17 @@ export default class ControlPanelView extends AbstractView {
     }
   }
 
+  // блокировщик на время автокомплита
+  lockPage() {
+    this.getElement().querySelector(`.lock-app`).classList.remove(`visually-hidden`);
+  }
+
+  unlockPage() {
+    if (!this.getElement().querySelector(`.lock-app`).classList.contains(`visually-hidden`)) {
+      this.getElement().querySelector(`.lock-app`).classList.add(`visually-hidden`);
+    }
+  }
+
   // внутренние ставим пачкой сразу
   _setInnerHandlers() {
     this.getElement().querySelector(`.control-panel__give-background`).addEventListener(`click`, this._handleGiveBackgroundView);
@@ -130,10 +142,10 @@ export default class ControlPanelView extends AbstractView {
   // сначала внутренние обработчики, отвечающие только за режимы внешнего вида
   _handleGiveBackgroundView(evt) {
     evt.preventDefault();
-    if (evt.target.innerHTML === `Без картины`) {
-      evt.target.innerHTML = `С картиной`;
+    if (evt.target.innerHTML === `Игра без картины`) {
+      evt.target.innerHTML = `Игра с картиной`;
     } else {
-      evt.target.innerHTML = `Без картины`;
+      evt.target.innerHTML = `Игра без картины`;
     }
   }
 

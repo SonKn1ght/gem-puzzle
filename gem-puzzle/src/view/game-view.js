@@ -19,8 +19,6 @@ export default class GameView extends AbstractView {
     this._game = game;
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);
-
-    this._setInnerHandlers();
   }
 
   _getTemplate() {
@@ -29,7 +27,7 @@ export default class GameView extends AbstractView {
       inlineBackground = `background-image: url('${this._options.background}');`;
     }
     return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
-              style="${inlineBackground}');"
+              style="${inlineBackground}"
               >
     ${getTemlateBones(this._game, this._options, inlineBackground)}
     <div class="popup_end-game visually-hidden" style="${inlineBackground}"></div>
@@ -66,10 +64,6 @@ export default class GameView extends AbstractView {
 
   numberDisplaySwitch() {
     this.getElement().classList.toggle(`container_font-size-zero`);
-  }
-
-  _setInnerHandlers() {
-    // this.getElement().addEventListener(`mousedown`, this._boneMousedownHandler);
   }
 
   _boneClickHandler(evt) {
