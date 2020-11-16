@@ -1,11 +1,11 @@
 import AbstractView from './absctract-view';
 import { getVoidPosition, formatGameDuration, extractFirstClass, extractClassesExceptFirst } from '../utils/utils';
 
-const getTemlateBones = (data, size) => {
+const getTemlateBones = (data, options) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
-              class="bone_img-${cur.value} bone_x${size} number_${i} ${cur.value === getVoidPosition(size) ? `zero` : ``}"
-              data-position="${cur.value}">${cur.value + 1}</div>`;
+              class="bone_img-${cur.value} bone_x${options.size} number_${i} ${cur.value === getVoidPosition(options.size) ? `zero` : ``}"
+              data-position="${cur.value}" style="background-image: url('${options.background}');">${cur.value + 1}</div>`;
   }, ``);
 };
 
@@ -13,8 +13,8 @@ export default class GameView extends AbstractView {
   constructor(game, options) {
     super();
     this._size = options.size;
+    this._options = options;
     this._game = game;
-
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);
 
@@ -22,8 +22,10 @@ export default class GameView extends AbstractView {
   }
 
   _getTemplate() {
-    return `<div class="container_x${this._size} bones">
-    ${getTemlateBones(this._game, this._size)}
+    return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
+              style="background-image: url('${this._options.background}');"
+              >
+    ${getTemlateBones(this._game, this._options)}
     <div class="popup_end-game visually-hidden">123456</div>
   </div>`;
   }
@@ -54,6 +56,10 @@ export default class GameView extends AbstractView {
 
     swapTargetElement.classList.toggle(`zero`);
     swapVoidElement.classList.toggle(`zero`);
+  }
+
+  numberDisplaySwitch() {
+    this.getElement().classList.toggle(`container_font-size-zero`);
   }
 
   _setInnerHandlers() {

@@ -2,7 +2,11 @@ import { UserAction, UpdateType, RenderPosition } from '../utils/const';
 import GameView from '../view/game-view';
 import ScoreView from '../view/score-view';
 import ControlPanelView from '../view/control-panel';
+import { getRandomInteger } from '../utils/utils-for-model';
 import { render, remove } from '../utils/utils';
+
+const MIN_IMG_NUMBER = 1;
+const MAX_IMG_NUMBER = 150;
 
 export default class GamePresenter {
   constructor(gameContainer, gameModel, scoreModel) {
@@ -12,12 +16,16 @@ export default class GamePresenter {
     // используется по факту для самого первого запуска
     this._optionGame = {
       size: `4`,
+      numberActive: true,
+      background: null,
       startTime: new Date(),
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
     this._handleScoreClick = this._handleScoreClick.bind(this);
     this._handleHelpGameClick = this._handleHelpGameClick.bind(this);
+    this._handleNumberDisplaySwitch = this._handleNumberDisplaySwitch.bind(this);
+    this._handleGiveBackground = this._handleGiveBackground.bind(this);
     this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
     this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
@@ -51,6 +59,10 @@ export default class GamePresenter {
   }
 
   _renderNewGame() {
+    // при рестарте обновляем картинку если она включена пользователем
+    if (this._optionGame.background !== null) {
+      this._optionGame.background = `./assets/image/${getRandomInteger(MIN_IMG_NUMBER, MAX_IMG_NUMBER)}.jpg`;
+    }
     this._gameComponent = new GameView(this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
@@ -76,6 +88,8 @@ export default class GamePresenter {
     this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
     this._controlPanelComponent.setScoreClickHandler(this._handleScoreClick);
     this._controlPanelComponent.setHelpGameClickHandler(this._handleHelpGameClick);
+    this._controlPanelComponent.setNumberDisplaySwitchHandler(this._handleNumberDisplaySwitch);
+    this._controlPanelComponent.setGiveBackgroundHandler(this._handleGiveBackground);
   }
 
   _setHandlersGameComponent() {
@@ -107,6 +121,24 @@ export default class GamePresenter {
     this._handleViewAction(UserAction.SHOW_HOW_WIN, UpdateType.SURRENDER);
   }
 
+  _handleNumberDisplaySwitch(evt) {
+    evt.preventDefault();
+    // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
+    this._optionGame.numberActive = !this._optionGame.numberActive;
+    // меняем состояние в текущей игре в отображении
+    this._gameComponent.numberDisplaySwitch();
+  }
+
+  _handleGiveBackground(evt) {
+    evt.preventDefault();
+    // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
+    if (this._optionGame.background === null) {
+      this._optionGame.background = `./assets/image/${getRandomInteger(MIN_IMG_NUMBER, MAX_IMG_NUMBER)}.jpg`;
+    } else {
+      this._optionGame.background = null;
+    }
+  }
+
   _handleSizeChange(evt) {
     this._optionGame.size = evt.target.value;
   }
@@ -117,12 +149,11 @@ export default class GamePresenter {
 
   _handleBoneDragDrop(evt) {
     // если будет время доработать соскальзывание курсора с костяшки при быстром перемещении мыши
-    // довольное спорный момент но функции и обработчики MouseMove и MouseUp будут здесь внутри
-    // , а не вынесены в отдельные методы
     evt.preventDefault();
     const targetDrag = evt.target;
     const container = this._gameComponent.getElement();
     const dropTargetCoords = this._gameComponent.getElement().querySelector(`.zero`).getBoundingClientRect();
+
     let startCoords = {
       x: evt.clientX,
       y: evt.clientY,
@@ -178,7 +209,7 @@ export default class GamePresenter {
       // восстанавливаем обработчик кликов после всего связанного с дропом
       setTimeout(() => {
         this._gameComponent.setBoneClickHandler(this._handleBoneClick);
-      }, 100);
+      }, 50);
     };
 
     container.addEventListener(`mousemove`, onMouseMove);
@@ -194,6 +225,7 @@ export default class GamePresenter {
         this._gameModel.restart(updateType, update);
         break;
       case UserAction.SHOW_HOW_WIN:
+        // запускает процесс автозавершения в модели
         this._gameModel.completeGame();
         break;
       default:

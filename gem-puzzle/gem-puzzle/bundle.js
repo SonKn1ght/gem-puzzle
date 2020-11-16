@@ -150,6 +150,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   init(options) {
+    console.log(options)
     this._statsCurrentGame.surrender = false;
     if (options === `load`) {
       this.loadGame();
@@ -182,21 +183,22 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   loadGame() {
     // тут огород что бы заного записать данные из строк в действующие объекты
+    // длинные ключи с надеждой на уникальность
     this._currentGame = JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`));
     this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
     const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
     this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"](logObject.count, logObject.storage);
-    const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`))
+    const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`));
     this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
     this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
     this._statsCurrentGame.endTime = new Date();
+    // тут создаем дату в прошлом вычитая сохраненую разность из текущего времени
     const rewoundTime = this._statsCurrentGame.endTime.getTime()
       - statsCurrentGameObject.durationGame;
     this._statsCurrentGame.startTime = new Date(rewoundTime);
   }
 
   restart(updateType, update) {
-
     // скидывание лога
     this._logGame.clear();
     this._currentGame = [];
@@ -264,6 +266,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
       this._logGame.push(update);
       // сэйвим игру по ходам
       this.saveGame();
+      // проверяем не произошел ли выигрыш
       this.checkWin();
       this._notify(updateType, updateAll);
       return;
@@ -273,7 +276,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   measuringTime(updateType = _utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].MEASURING_TIME) {
-    // самозацикленные часики
+    // самозацикленные часики с сэйвом игры каждую секунду
     this.saveGame();
     this._statsCurrentGame.endTime = new Date();
     this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
@@ -301,6 +304,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     // берем индекс обратной размотки по одному из нашего стэка
     const swapIndex = this._logGame.pop();
+    // отправляем в представление через рекурсивный вызов функции пока в стэке не кончатся значения
     this.updateGame(_utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].MOVING, swapIndex);
 
     // таймаут в длину анимации хода, что бы можно было смотреть анимированное завершение игры
@@ -460,7 +464,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _view_game_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../view/game-view */ "./src/view/game-view.js");
 /* harmony import */ var _view_score_view__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../view/score-view */ "./src/view/score-view.js");
 /* harmony import */ var _view_control_panel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../view/control-panel */ "./src/view/control-panel.js");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.js");
+/* harmony import */ var _utils_utils_for_model__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils-for-model */ "./src/utils/utils-for-model.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/utils */ "./src/utils/utils.js");
+
 
 
 
@@ -475,13 +481,16 @@ class GamePresenter {
     // используется по факту для самого первого запуска
     this._optionGame = {
       size: `4`,
-      // numberOfMixes: 20,
+      numberActive: true,
+      background: null,
       startTime: new Date(),
     };
 
     this._handleNewGameClick = this._handleNewGameClick.bind(this);
     this._handleScoreClick = this._handleScoreClick.bind(this);
     this._handleHelpGameClick = this._handleHelpGameClick.bind(this);
+    this._handleNumberDisplaySwitch = this._handleNumberDisplaySwitch.bind(this);
+    this._handleGiveBackground = this._handleGiveBackground.bind(this);
     this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
     this._handleSizeChange = this._handleSizeChange.bind(this);
     this._handleBoneClick = this._handleBoneClick.bind(this);
@@ -508,7 +517,7 @@ class GamePresenter {
   _renderControlPanel() {
     this._controlPanelComponent = new _view_control_panel__WEBPACK_IMPORTED_MODULE_3__["default"]();
 
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer,
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer,
       this._controlPanelComponent.getElement(),
       _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].AFTERBEGIN);
     this._setHandlersControlPanel();
@@ -517,21 +526,21 @@ class GamePresenter {
   _renderNewGame() {
     this._gameComponent = new _view_game_view__WEBPACK_IMPORTED_MODULE_1__["default"](this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
     this._setHandlersGameComponent();
   }
 
   _renderLoadGame() {
     this._gameComponent = new _view_game_view__WEBPACK_IMPORTED_MODULE_1__["default"](this._gameModel.getGame(),
       this._gameModel.getCurrentGameOptions());
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
     this._setHandlersGameComponent();
   }
 
   _renderScore() {
     this._scoreComponent = new _view_score_view__WEBPACK_IMPORTED_MODULE_2__["default"](this._scoreModel.getScore(), this._optionGame.size);
 
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["render"])(this._gameContainer, this._scoreComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer, this._scoreComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
     this._setHandlersScoreComponent();
   }
 
@@ -540,6 +549,8 @@ class GamePresenter {
     this._controlPanelComponent.setSizeChangeHandler(this._handleSizeChange);
     this._controlPanelComponent.setScoreClickHandler(this._handleScoreClick);
     this._controlPanelComponent.setHelpGameClickHandler(this._handleHelpGameClick);
+    this._controlPanelComponent.setNumberDisplaySwitchHandler(this._handleNumberDisplaySwitch);
+    this._controlPanelComponent.setGiveBackgroundHandler(this._handleGiveBackground);
   }
 
   _setHandlersGameComponent() {
@@ -563,12 +574,28 @@ class GamePresenter {
 
   _handleScoreCloseClick(evt) {
     evt.preventDefault();
-    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["remove"])(this._scoreComponent);
+    Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["remove"])(this._scoreComponent);
   }
 
   _handleHelpGameClick(evt) {
     evt.preventDefault();
     this._handleViewAction(_utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].SHOW_HOW_WIN, _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].SURRENDER);
+  }
+
+  _handleNumberDisplaySwitch(evt) {
+    evt.preventDefault();
+    // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
+    this._optionGame.numberActive = !this._optionGame.numberActive;
+    // меняем состояние в текущей игре в отображении
+    this._gameComponent.numberDisplaySwitch();
+  }
+
+  _handleGiveBackground(evt) {
+    evt.preventDefault();
+    const minImgNumber = 1;
+    const maxImgNumber = 150;
+    // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
+    this._optionGame.background = `./assets/image/${Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_4__["getRandomInteger"])(minImgNumber, maxImgNumber)}.img`;
   }
 
   _handleSizeChange(evt) {
@@ -642,7 +669,7 @@ class GamePresenter {
       // восстанавливаем обработчик кликов после всего связанного с дропом
       setTimeout(() => {
         this._gameComponent.setBoneClickHandler(this._handleBoneClick);
-      }, 100);
+      }, 50);
     };
 
     container.addEventListener(`mousemove`, onMouseMove);
@@ -658,10 +685,11 @@ class GamePresenter {
         this._gameModel.restart(updateType, update);
         break;
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UserAction"].SHOW_HOW_WIN:
+        // запускает процесс автозавершения в модели
         this._gameModel.completeGame();
         break;
-      // case UserAction.******:
-      //   break;
+      default:
+        throw new Error(`something broke in handleViewAction`);
     }
   }
 
@@ -672,7 +700,7 @@ class GamePresenter {
         this._controlPanelComponent.updateCounter(data.count);
         break;
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].RESTART:
-        Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["remove"])(this._gameComponent);
+        Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["remove"])(this._gameComponent);
         this._renderNewGame();
         // при рестарте запускаем без параметров сбрасывая счетчики во view на 0
         this._controlPanelComponent.updateCounter();
@@ -688,6 +716,8 @@ class GamePresenter {
         }
         this._gameComponent.showEndGame(data);
         break;
+      default:
+        throw new Error(`something broke in handleModelEvent`);
     }
   }
 }
@@ -734,13 +764,22 @@ const RenderPosition = {
 };
 
 const NUMBER_OF_PERMUTATIONS = {
-  3: 20,
-  4: 40,
-  5: 60,
-  6: 150,
-  7: 200,
-  8: 250,
+  3: 2,
+  4: 2,
+  5: 2,
+  6: 2,
+  7: 2,
+  8: 2,
 };
+
+// export const NUMBER_OF_PERMUTATIONS = {
+//   3: 20,
+//   4: 40,
+//   5: 60,
+//   6: 150,
+//   7: 200,
+//   8: 250,
+// };
 
 const ThreeByThree = [
   { posFix: 0, value: 0, allowedOffset: [1, 3] },
@@ -1015,11 +1054,12 @@ class Stack {
 /*!**************************************!*\
   !*** ./src/utils/utils-for-model.js ***!
   \**************************************/
-/*! exports provided: shuffleGame, generateGraph */
+/*! exports provided: getRandomInteger, shuffleGame, generateGraph */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRandomInteger", function() { return getRandomInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shuffleGame", function() { return shuffleGame; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "generateGraph", function() { return generateGraph; });
 const getRandomInteger = (a = 0, b = 1) => {
@@ -1096,7 +1136,6 @@ const generateGraph = (size) => {
       accessiblePaths.push(cur - 1);
     }
 
-
     const accessiblePathsFilters = accessiblePaths.filter((current) => {
       return (current >= 0 && current < array.length);
     });
@@ -1117,7 +1156,7 @@ const generateGraph = (size) => {
 /*!****************************!*\
   !*** ./src/utils/utils.js ***!
   \****************************/
-/*! exports provided: createElement, render, remove, getVoidPosition, formatGameDuration */
+/*! exports provided: createElement, render, remove, getVoidPosition, formatGameDuration, extractFirstClass, extractClassesExceptFirst */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1127,6 +1166,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "remove", function() { return remove; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getVoidPosition", function() { return getVoidPosition; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formatGameDuration", function() { return formatGameDuration; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractFirstClass", function() { return extractFirstClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractClassesExceptFirst", function() { return extractClassesExceptFirst; });
 /* harmony import */ var _const__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./const */ "./src/utils/const.js");
 /* harmony import */ var _view_absctract_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../view/absctract-view */ "./src/view/absctract-view.js");
 
@@ -1147,6 +1188,8 @@ const render = (container, child, place) => {
     case _const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND:
       container.append(child);
       break;
+    default:
+      throw new Error(`something broke in render function`);
   }
 };
 
@@ -1189,7 +1232,13 @@ const formatGameDuration = (duration) => {
   return `${addZero(minute)}:${addZero(seconds)}`;
 };
 
+const extractFirstClass = (str) => {
+  return str.slice(0, str.indexOf(` `));
+};
 
+const extractClassesExceptFirst = (str) => {
+  return str.slice(str.indexOf(` `) + 1, str.length);
+};
 
 
 /***/ }),
@@ -1262,12 +1311,15 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     this._scoreClickHandler = this._scoreClickHandler.bind(this);
     this._helpGameClickHandler = this._helpGameClickHandler.bind(this);
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
+    this._numberDisplaySwitchHandler = this._numberDisplaySwitchHandler.bind(this);
+    this._giveBackgroundHandler = this._giveBackgroundHandler.bind(this);
   }
 
   _getTemplate() {
     return `<div class="control-panel">
               <div class="control-panel__wrapper-first-row">
                 <button class="control-panel__new-game">New Game</button>
+                <button class="control-panel__give-background">Добавь картинку</button>
                 <div class="control-panel__options">
                   <ul class="control-panel__size-control-list">
                     <li class="control-panel__size-item">
@@ -1318,7 +1370,12 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
                 </div>
                 <button class="control-panel__score">Score</button>
               </div>
-              <button class="control-panel__end-game">Do it for me</button>
+              <div class="control-panel__wrapper-third-row">
+                <button class="control-panel__end-game">Играй за меня машина!</button>
+
+                <button class="control-panel__switch-numbers">Скрыть цифры</button>
+              </div>
+
             </div>`;
   }
 
@@ -1334,6 +1391,9 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     }
 
     this._timeContainer.innerHTML = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(duration);
+  }
+
+  _setInnerHandlers() {
   }
 
   _newGameClickHandler(evt) {
@@ -1375,6 +1435,26 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     this._callback.sizeChangeHandler = callback;
     this.getElement().querySelector(`.control-panel__size-control-list`).addEventListener(`change`, this._sizeChangeHandler);
   }
+
+  _numberDisplaySwitchHandler(evt) {
+    evt.preventDefault();
+    this._callback.numberDisplaySwitch(evt);
+  }
+
+  setNumberDisplaySwitchHandler(callback) {
+    this._callback.numberDisplaySwitch = callback;
+    this.getElement().querySelector(`.control-panel__switch-numbers`).addEventListener(`click`, this._numberDisplaySwitchHandler);
+  }
+
+  _giveBackgroundHandler(evt) {
+    evt.preventDefault();
+    this._callback.giveBackground(evt);
+  }
+
+  setGiveBackgroundHandler(callback) {
+    this._callback.giveBackground = callback;
+    this.getElement().querySelector(`.control-panel__give-background`).addEventListener(`click`, this._giveBackgroundHandler);
+  }
 }
 
 
@@ -1398,7 +1478,7 @@ __webpack_require__.r(__webpack_exports__);
 const getTemlateBones = (data, size) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
-              class="bone_x${size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(size) ? `zero` : ``}"
+              class="bone_img-${cur.value} bone_x${size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(size) ? `zero` : ``}"
               data-position="${cur.value}">${cur.value + 1}</div>`;
   }, ``);
 };
@@ -1407,8 +1487,8 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(game, options) {
     super();
     this._size = options.size;
+    this._options = options;
     this._game = game;
-
     this._boneClickHandler = this._boneClickHandler.bind(this);
     this._boneDragDropHandler = this._boneDragDropHandler.bind(this);
 
@@ -1416,7 +1496,9 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   _getTemplate() {
-    return `<div class="container_x${this._size} bones">
+    return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
+              style="background-image: url('${this._options.background}');"
+              >
     ${getTemlateBones(this._game, this._size)}
     <div class="popup_end-game visually-hidden">123456</div>
   </div>`;
@@ -1437,14 +1519,21 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
     const swapTargetElement = this.getElement().querySelector(`[data-position='${swapElement}']`);
     const swapVoidElement = this.getElement().querySelector(`.zero`);
 
-    const swapTargetElementClass = swapTargetElement.classList.value;
-    const swapVoidElementClass = swapVoidElement.classList.value;
+    const swapTargetElementClassImg = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["extractFirstClass"])(swapTargetElement.classList.value);
+    const swapVoidElementClassImg = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["extractFirstClass"])(swapVoidElement.classList.value);
 
-    swapTargetElement.className = swapVoidElementClass;
-    swapVoidElement.className = swapTargetElementClass;
+    const swapTargetElementClass = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["extractClassesExceptFirst"])(swapTargetElement.classList.value);
+    const swapVoidElementClass = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["extractClassesExceptFirst"])(swapVoidElement.classList.value);
+
+    swapTargetElement.className = `${swapTargetElementClassImg} ${swapVoidElementClass}`;
+    swapVoidElement.className = `${swapVoidElementClassImg} ${swapTargetElementClass}`;
 
     swapTargetElement.classList.toggle(`zero`);
     swapVoidElement.classList.toggle(`zero`);
+  }
+
+  numberDisplaySwitch() {
+    this.getElement().classList.toggle(`container_font-size-zero`);
   }
 
   _setInnerHandlers() {

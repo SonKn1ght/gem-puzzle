@@ -51,6 +51,7 @@ export default class GameModel extends Observer {
 
   loadGame() {
     // тут огород что бы заного записать данные из строк в действующие объекты
+    // длинные ключи с надеждой на уникальность
     this._currentGame = JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`));
     this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
     const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
@@ -59,6 +60,7 @@ export default class GameModel extends Observer {
     this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
     this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
     this._statsCurrentGame.endTime = new Date();
+    // тут создаем дату в прошлом вычитая сохраненую разность из текущего времени
     const rewoundTime = this._statsCurrentGame.endTime.getTime()
       - statsCurrentGameObject.durationGame;
     this._statsCurrentGame.startTime = new Date(rewoundTime);
@@ -132,6 +134,7 @@ export default class GameModel extends Observer {
       this._logGame.push(update);
       // сэйвим игру по ходам
       this.saveGame();
+      // проверяем не произошел ли выигрыш
       this.checkWin();
       this._notify(updateType, updateAll);
       return;
@@ -141,7 +144,7 @@ export default class GameModel extends Observer {
   }
 
   measuringTime(updateType = UpdateType.MEASURING_TIME) {
-    // самозацикленные часики
+    // самозацикленные часики с сэйвом игры каждую секунду
     this.saveGame();
     this._statsCurrentGame.endTime = new Date();
     this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
@@ -169,6 +172,7 @@ export default class GameModel extends Observer {
 
     // берем индекс обратной размотки по одному из нашего стэка
     const swapIndex = this._logGame.pop();
+    // отправляем в представление через рекурсивный вызов функции пока в стэке не кончатся значения
     this.updateGame(UpdateType.MOVING, swapIndex);
 
     // таймаут в длину анимации хода, что бы можно было смотреть анимированное завершение игры

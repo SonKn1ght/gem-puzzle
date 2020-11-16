@@ -27,49 +27,90 @@ body {
 }
 
 .control-panel {
+  width: 450px;
+  display: flex;
+  flex-direction: column;
   text-align: center;
+  row-gap: 10px;
+  padding-bottom: 10px;
+}
+
+@media (max-width: 500px) {
+  .control-panel {
+    width: auto;
+  }
 }
 
 .control-panel__wrapper-first-row {
-  display: flex;
+  position: relative;
+  justify-content: space-between;
   align-items: center;
 }
 
-.control-panel__new-game {
+.btn {
   display: inline-block;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 0 -1px rgba(0,0,0,.5);
+  user-select: none;
+  padding: .7em 1.5em;
+  border: 1px solid rgb(80,32,0);
+  border-radius: 5px;
+  outline: none;
+  background: rgb(147,80,36) linear-gradient(rgb(106,58,26), rgb(147,80,36) 80%);
+  box-shadow:
+    0 6px rgb(86,38,6),
+    0 3px 15px rgba(0,0,0,.4),
+    inset 0 1px rgba(255,255,255,.3),
+    inset 0 0 3px rgba(255,255,255,.5);
+  transition: .2s;
+}
 
+.btn:hover {
+  cursor: pointer;
+  background: rgb(167,91,41) linear-gradient(rgb(126,69,31), rgb(167,91,41) 80%);
+}
+
+.btn:active {
+  background: rgb(120,63,25) linear-gradient(rgb(120,63,25) 20%, rgb(167,91,41));
+  box-shadow:
+    0 2px rgb(86,38,6),
+    0 1px 6px rgba(0,0,0,.4),
+    inset 0 1px rgba(255,255,255,.3),
+    inset 0 0 3px rgba(255,255,255,.5);
+  -webkit-transform: translate(0, 4px);
+  transform: translate(0, 4px);
+}
+
+
+.control-panel__new-game {
+  font-size: 16px;
+  margin-right: 10px;
+
+  box-sizing: border-box;
+  padding: 1.2rem 3rem;
+}
+
+.control-panel__setting-new-game-button {
   font-size: 16px;
 
   box-sizing: border-box;
-  /*padding: 1.2rem 3rem;*/
-
-  color: black;
-  background-color: #E5E5E5;
-  border: none;
-  border-radius: 10rem;
-  outline: none;
-  margin: 0 10px 15px 0;
+  padding: 1.2rem 1.7rem;
 }
 
-.control-panel__new-game:hover {
-  cursor: pointer;
-  background-color: gray;
+.control-panel__give-background {
+  position: absolute;
+  right: 30px;
 }
+
 
 .control-panel__score {
-  display: inline-block;
-
   font-size: 16px;
+  margin-right: 0px;
 
   box-sizing: border-box;
-  padding: 1.2rem 2.5rem;
-
-  color: black;
-  background-color: #E5E5E5;
-  border: none;
-  border-radius: 10rem;
-  outline: none;
-  margin: 0 10px 15px 0;
+  padding: 1.2rem 2rem;
 }
 
 .control-panel__score:hover {
@@ -78,25 +119,20 @@ body {
 }
 
 .control-panel__end-game {
-  display: inline-block;
+  font-size: 16px;
+  margin-right: 10px;
 
+  box-sizing: border-box;
+  padding: 1.2rem 2.2rem;
+}
+
+.control-panel__switch-numbers {
   font-size: 16px;
 
   box-sizing: border-box;
-  padding: 1.2rem 2.5rem;
-
-  color: black;
-  background-color: #E5E5E5;
-  border: none;
-  border-radius: 10rem;
-  outline: none;
-  margin: 0 10px 15px 0;
+  padding: 1.2rem 2.2rem;
 }
 
-.control-panel__end-game:hover {
-  cursor: pointer;
-  background-color: gray;
-}
 
 .control-panel__size-item {
   position: relative;
@@ -192,18 +228,36 @@ body {
 
 .control-panel__wrapper-second-row {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 
 .control-panel__moves-container {
+  display: flex;
+  align-items: center;
+  height: 44px;
+
   font-size: 18px;
-  margin: 0 15px 15px 0;
+  margin: 0 15px 0 0;
+}
+
+.control-panel__moves {
+  display: block;
+  margin-left: 7px;
 }
 
 .control-panel__time-container {
+  display: flex;
+  align-items: center;
+  height: 44px;
+
   font-size: 18px;
-  margin: 0 15px 15px 0;
+  margin: 0 15px 0 0;
+}
+
+.control-panel__time {
+  display: block;
+  margin-left: 7px;
 }
 
 /*/////////////////// SCORE /////////////*/
@@ -381,9 +435,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  /*background-image: url(assets/image/111.jpg);*/
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -506,6 +558,7 @@ body {
 }
 
 .container_x3 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -517,8 +570,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -642,6 +694,7 @@ body {
 }
 
 .container_x4 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -714,8 +767,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -885,6 +937,7 @@ body {
 }
 
 .container_x5 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -992,8 +1045,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -1219,6 +1271,7 @@ body {
 }
 
 .container_x6 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -1370,8 +1423,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -1661,6 +1713,7 @@ body {
 }
 
 .container_x7 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -1912,9 +1965,7 @@ body {
   font-size: 32px;
   text-align: center;
   position: relative;
-  background-image: url(assets/image/111.jpg);
-  /*background-color: rgba(255, 255, 255, 0.6);*/
-  background-color: gray;
+  background-color: rgba(200, 200, 200, 0.9);
   background-blend-mode: overlay;
   background-size: 50rem 50rem;
   width: 50rem;
@@ -2279,6 +2330,7 @@ body {
 }
 
 .container_x8 .zero {
+  background-image: none!important;
   background-color: transparent;
   border: 3px transparent solid;
   font-size: 0;
@@ -2600,3 +2652,6 @@ body {
 
 }
 
+.container_font-size-zero {
+  font-size: 0;
+}
