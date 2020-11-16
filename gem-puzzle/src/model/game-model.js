@@ -56,7 +56,7 @@ export default class GameModel extends Observer {
     this._currentGame = JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`));
     this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
     const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
-    this._logGame = new Stack(logObject.count, logObject.storage);
+    this._logGame = new Stack(logObject.storage);
     const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`));
     this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
     this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
@@ -68,6 +68,7 @@ export default class GameModel extends Observer {
   }
 
   restart(updateType, update) {
+    this._timeStop = false;
     // скидывание лога
     this._logGame.clear();
     this._currentGame = [];
@@ -86,6 +87,7 @@ export default class GameModel extends Observer {
       this._logGame, this._voidValue);
     // удаляем данные старой игры записываем новую
     this.saveGame();
+    this.measuringTime();
 
     this._notify(updateType, update);
   }
@@ -164,6 +166,10 @@ export default class GameModel extends Observer {
   }
 
   completeGame() {
+    if (this._statsCurrentGame.surrender === false)  {
+      this._logGame.optimize();
+    }
+
     // меняю флаг что бы обработать выигрыш компьютера, использую метод модели updateGame
     // дабы менять и состояние игры в данных и в представлении
     this._statsCurrentGame.surrender = true;

@@ -1,35 +1,40 @@
 export default class Stack {
-  constructor(count = 0, storage = {}) {
-    this.count = count;
+  constructor(storage = []) {
     this.storage = storage;
   }
 
   push(value) {
-    this.storage[this.count] = value;
-    this.count += 1;
+    this.storage.push(value);
   }
 
   pop() {
-    if (this.count === 0) {
+    if (this.storage.length === 0) {
       return undefined;
     }
 
-    this.count -= 1;
-    const result = this.storage[this.count];
-    delete this.storage[this.count];
-    return result;
+    return this.storage.pop();
   }
 
   size() {
-    return this.count;
-  }
-
-  peek() {
-    return this.storage[this.count - 1];
+    return this.storage.length;
   }
 
   clear() {
-    this.count = 0;
-    this.storage = {};
+    this.storage = [];
+  }
+
+  optimize() {
+    this.storage = this.storage.reduce((acc, cur, i) => {
+      if (i === 0) {
+        acc.push(+cur);
+        return acc;
+      }
+      if (cur == acc[acc.length -1]) {
+        acc.pop();
+        return acc;
+      }
+      acc.push(+cur);
+      return acc;
+    }, []);
   }
 }

@@ -187,7 +187,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     this._currentGame = JSON.parse(this._storage.getItem(`theStateOfTheCurrentGameIsWrittenHere`));
     this._currentGameOptions = JSON.parse(this._storage.getItem(`optionsForTheGameAreStoredHere`));
     const logObject = JSON.parse(this._storage.getItem(`hereIsTheLogOfTheCurrentGame`));
-    this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"](logObject.count, logObject.storage);
+    this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"](logObject.storage);
     const statsCurrentGameObject = JSON.parse(this._storage.getItem(`hereIsTheStatisticsOfTheCurrentGame`));
     this._statsCurrentGame.countMoves = statsCurrentGameObject.countMoves;
     this._statsCurrentGame.durationGame = statsCurrentGameObject.durationGame;
@@ -199,6 +199,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   restart(updateType, update) {
+    this._timeStop = false;
     // скидывание лога
     this._logGame.clear();
     this._currentGame = [];
@@ -217,6 +218,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
       this._logGame, this._voidValue);
     // удаляем данные старой игры записываем новую
     this.saveGame();
+    this.measuringTime();
 
     this._notify(updateType, update);
   }
@@ -295,6 +297,10 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   completeGame() {
+    if (this._statsCurrentGame.surrender === false)  {
+      this._logGame.optimize();
+    }
+
     // меняю флаг что бы обработать выигрыш компьютера, использую метод модели updateGame
     // дабы менять и состояние игры в данных и в представлении
     this._statsCurrentGame.surrender = true;
@@ -788,23 +794,23 @@ const RenderPosition = {
   BEFOREEND: `beforeend`,
 };
 
-const NUMBER_OF_PERMUTATIONS = {
-  3: 2,
-  4: 2,
-  5: 2,
-  6: 2,
-  7: 2,
-  8: 2,
-};
-
 // export const NUMBER_OF_PERMUTATIONS = {
-//   3: 20,
-//   4: 40,
-//   5: 60,
-//   6: 150,
-//   7: 200,
-//   8: 250,
+//   3: 2,
+//   4: 2,
+//   5: 2,
+//   6: 2,
+//   7: 2,
+//   8: 2,
 // };
+
+const NUMBER_OF_PERMUTATIONS = {
+  3: 20,
+  4: 40,
+  5: 60,
+  6: 150,
+  7: 200,
+  8: 250,
+};
 
 const ThreeByThree = [
   { posFix: 0, value: 0, allowedOffset: [1, 3] },
@@ -1037,38 +1043,43 @@ const EightByEight = [
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Stack; });
 class Stack {
-  constructor(count = 0, storage = {}) {
-    this.count = count;
+  constructor(storage = []) {
     this.storage = storage;
   }
 
   push(value) {
-    this.storage[this.count] = value;
-    this.count += 1;
+    this.storage.push(value);
   }
 
   pop() {
-    if (this.count === 0) {
+    if (this.storage.length === 0) {
       return undefined;
     }
 
-    this.count -= 1;
-    const result = this.storage[this.count];
-    delete this.storage[this.count];
-    return result;
+    return this.storage.pop();
   }
 
   size() {
-    return this.count;
-  }
-
-  peek() {
-    return this.storage[this.count - 1];
+    return this.storage.length;
   }
 
   clear() {
-    this.count = 0;
-    this.storage = {};
+    this.storage = [];
+  }
+
+  optimize() {
+    this.storage = this.storage.reduce((acc, cur, i) => {
+      if (i === 0) {
+        acc.push(+cur);
+        return acc;
+      }
+      if (cur == acc[acc.length -1]) {
+        acc.pop();
+        return acc;
+      }
+      acc.push(+cur);
+      return acc;
+    }, []);
   }
 }
 
