@@ -44,6 +44,7 @@ export default class GamePresenter {
     } else {
       this._gameModel.init(this._optionGame);
       this._renderNewGame();
+
     }
 
     this._scoreModel.getStorage();
@@ -74,6 +75,8 @@ export default class GamePresenter {
       this._gameModel.getCurrentGameOptions());
     render(this._gameContainer, this._gameComponent.getElement(), RenderPosition.BEFOREEND);
     this._setHandlersGameComponent();
+    // обновляем счетчик при перезагрузке страницы
+    this._controlPanelComponent.updateCounter(this._gameModel.getCurrentGameStats());
   }
 
   _renderScore() {
@@ -237,7 +240,10 @@ export default class GamePresenter {
     switch (updateType) {
       case UpdateType.MOVING:
         this._gameComponent.swapBone(data.numberBone);
-        this._controlPanelComponent.updateCounter(data.count);
+        this._controlPanelComponent.updateCounter(data);
+        // озвучка задействуется здесь только по возвращению
+        // подтверждения валидности перемещения из модели
+        this._controlPanelComponent.playSoundPressBone();
         break;
       case UpdateType.RESTART:
         remove(this._gameComponent);

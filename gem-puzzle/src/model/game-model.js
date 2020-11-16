@@ -11,6 +11,7 @@ export default class GameModel extends Observer {
     this._statsCurrentGame = {};
     this._logGame = new Stack();
     this._storage = window.localStorage;
+    this._timeStop = false;
 
     // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
@@ -97,6 +98,10 @@ export default class GameModel extends Observer {
     return this._currentGameOptions;
   }
 
+  getCurrentGameStats() {
+    return this._statsCurrentGame;
+  }
+
   updateGame(updateType, update) {
     // получаем текущую позицию воида
     const voidValue = this._voidValue;
@@ -126,7 +131,7 @@ export default class GameModel extends Observer {
     // готовим измененые параметры для отправки в презентор
     const updateAll = {
       numberBone: update,
-      count: this._statsCurrentGame.countMoves,
+      countMoves: this._statsCurrentGame.countMoves,
     };
 
     if (!this._statsCurrentGame.surrender) {
@@ -144,13 +149,16 @@ export default class GameModel extends Observer {
   }
 
   measuringTime(updateType = UpdateType.MEASURING_TIME) {
+    if (this._timeStop) {
+      return;
+    }
     // самозацикленные часики с сэйвом игры каждую секунду
     this.saveGame();
     this._statsCurrentGame.endTime = new Date();
     this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
       - this._statsCurrentGame.startTime.getTime();
 
-    this._notify(updateType, this._statsCurrentGame.durationGame);
+    this._notify(updateType, this._statsCurrentGame);
 
     setTimeout(this.measuringTime, 1000);
   }
@@ -180,6 +188,7 @@ export default class GameModel extends Observer {
   }
 
   checkWin() {
+
     let isWin = true;
     // пробегаем по полю игры сравнивая состояния положений ячеек и значений лежащих в них
     this._currentGame.forEach((currentElement) => {
@@ -188,6 +197,8 @@ export default class GameModel extends Observer {
       }
     });
     if (isWin) {
+      // останавливаем часы
+      this._timeStop = true;
       // прокидываю стату в обработку завершения игры в стате данные
       // о том пользователь сам выиграл или за него доигрывали
       this._notify(UpdateType.WIN, this._statsCurrentGame);

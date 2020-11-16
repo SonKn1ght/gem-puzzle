@@ -26,7 +26,7 @@ export default class GameView extends AbstractView {
               style="background-image: url('${this._options.background}');"
               >
     ${getTemlateBones(this._game, this._options)}
-    <div class="popup_end-game visually-hidden">123456</div>
+    <div class="popup_end-game visually-hidden" style="background-image: url('${this._options.background}');"></div>
   </div>`;
   }
 

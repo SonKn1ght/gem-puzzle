@@ -4,9 +4,11 @@ import { formatGameDuration } from '../utils/utils';
 export default class ControlPanelView extends AbstractView {
   constructor() {
     super();
+    this._soundActive = true;
 
     this._countContainer = this.getElement().querySelector(`.control-panel__moves`);
     this._timeContainer = this.getElement().querySelector(`.control-panel__time`);
+    this._hiddenOptions = this.getElement().querySelector(`.control-panel__hidden-options`);
 
     this._newGameClickHandler = this._newGameClickHandler.bind(this);
     this._scoreClickHandler = this._scoreClickHandler.bind(this);
@@ -14,6 +16,11 @@ export default class ControlPanelView extends AbstractView {
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
     this._numberDisplaySwitchHandler = this._numberDisplaySwitchHandler.bind(this);
     this._giveBackgroundHandler = this._giveBackgroundHandler.bind(this);
+
+    this._handleOptionToggle = this._handleOptionToggle.bind(this);
+    this._handleCloseOptionAtStart = this._handleCloseOptionAtStart.bind(this);
+    this._handleSwitchNumbers = this._handleSwitchNumbers.bind(this);
+    this._handleSwitchSound = this._handleSwitchSound.bind(this);
 
     this._setInnerHandlers();
   }
@@ -23,8 +30,9 @@ export default class ControlPanelView extends AbstractView {
               <div class="control-panel__wrapper-first-row">
                 <button class="control-panel__new-game btn">Старт</button>
                 <button class="control-panel__setting-new-game-button btn">Опции новой игры</button>
-                <button class="control-panel__give-background btn visually-hidden">Без картины</button>
-                <ul class="control-panel__size-control-list visually-hidden">
+                <div class="control-panel__hidden-options visually-hidden">
+                                  <button class="control-panel__give-background btn ">Без картины</button>
+                <ul class="control-panel__size-control-list ">
                   <li class="control-panel__size-item">
                     <label>
                       <input class="visually-hidden" type="radio" name="size" value="3">
@@ -63,6 +71,8 @@ export default class ControlPanelView extends AbstractView {
                   </li>
                 </ul>
               </div>
+
+              </div>
               <div class="control-panel__wrapper-second-row">
                 <div class="control-panel__moves-container">
                 Moves: <span class="control-panel__moves">0</span>
@@ -74,31 +84,50 @@ export default class ControlPanelView extends AbstractView {
               </div>
               <div class="control-panel__wrapper-third-row">
                 <button class="control-panel__end-game btn">Доиграй!</button>
-
-                <button class="control-panel__switch-numbers btn">Скрыть цифры</button>
+                <button class="control-panel__control-sounds btn sound-active"></button>
+                <button class="control-panel__switch-numbers btn">Числа<br> убрать</button>
               </div>
-
+              <audio id="sound" src="./assets/sounds/Sound.mp3"></audio>
             </div>`;
   }
 
-  updateCounter(count = 0) {
-    this._count = count;
-    this._countContainer.innerHTML = this._count;
+  // обновители отображения состояний метрики игры
+  updateCounter(statsCurrentGame) {
+    if (statsCurrentGame === undefined) {
+      this._countContainer.innerHTML = 0;
+    } else {
+      this._count = statsCurrentGame.countMoves;
+      this._countContainer.innerHTML = this._count;
+    }
   }
 
-  updateTime(duration = `00:00`) {
-    if (typeof duration !== `number`) {
+  updateTime(statsCurrentGame = `00:00`) {
+    if (typeof statsCurrentGame.durationGame !== `number`) {
       this._timeContainer.innerHTML = `00:00`;
       return;
     }
-
-    this._timeContainer.innerHTML = formatGameDuration(duration);
+    this._timeContainer.innerHTML = formatGameDuration(statsCurrentGame.durationGame);
   }
 
+  // крякалка
+  playSoundPressBone() {
+    if (this._soundActive) {
+      const audio = document.querySelector(`#sound`);
+      audio.currentTime = 0;
+      audio.play();
+    }
+  }
+
+  // внутренние ставим пачкой сразу
   _setInnerHandlers() {
     this.getElement().querySelector(`.control-panel__give-background`).addEventListener(`click`, this._handleGiveBackgroundView);
+    this.getElement().querySelector(`.control-panel__setting-new-game-button`).addEventListener(`click`, this._handleOptionToggle);
+    this.getElement().querySelector(`.control-panel__new-game`).addEventListener(`click`, this._handleCloseOptionAtStart);
+    this.getElement().querySelector(`.control-panel__switch-numbers`).addEventListener(`click`, this._handleSwitchNumbers);
+    this.getElement().querySelector(`.control-panel__control-sounds`).addEventListener(`click`, this._handleSwitchSound);
   }
 
+  // сначала внутренние обработчики, отвечающие только за режимы внешнего вида
   _handleGiveBackgroundView(evt) {
     evt.preventDefault();
     if (evt.target.innerHTML === `Без картины`) {
@@ -108,6 +137,33 @@ export default class ControlPanelView extends AbstractView {
     }
   }
 
+  _handleOptionToggle() {
+    this._hiddenOptions.classList.toggle(`visually-hidden`);
+  }
+
+  _handleCloseOptionAtStart() {
+    if (!this._hiddenOptions.classList.contains(`visually-hidden`)) {
+      this._hiddenOptions.classList.add(`visually-hidden`);
+    }
+  }
+
+  _handleSwitchNumbers(evt) {
+    evt.preventDefault();
+    if (evt.target.innerHTML === `Числа<br> убрать`) {
+      evt.target.innerHTML = `Числа<br> вернуть`;
+    } else {
+      evt.target.innerHTML = `Числа<br> убрать`;
+    }
+  }
+
+  _handleSwitchSound(evt) {
+    evt.preventDefault();
+    evt.target.classList.toggle(`sound-active`);
+    evt.target.classList.toggle(`sound-disable`);
+    this._soundActive = !this._soundActive;
+  }
+
+  // обработчикки и их установшики внешних воздействий
   _newGameClickHandler(evt) {
     evt.preventDefault();
     this._callback.newGameClickHandler(evt);

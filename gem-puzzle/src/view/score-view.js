@@ -4,8 +4,8 @@ import { formatGameDuration } from '../utils/utils';
 const generateRecordItems = (score, size) => {
   if (score[size].length === 0) {
     return `<li class="score__item-empty">
-              <span class="score__empty-row">Nobody has won this version yet.</span>
-              <span class="score__empty-row">Just do it.</span>
+              <span class="score__empty-row">Тут еще никто не выиграл.</span>
+              <span class="score__empty-row">Сделай это!</span>
             </li>`;
   }
   return score[size].reduce((acc, cur, i) => {
@@ -80,7 +80,7 @@ export default class ScoreView extends AbstractView {
                 ${generateRecordItems(this._score, this._size)}
               </ul>
               <div class="score__close-wrapper">
-                <p class="score__close">Close</p>
+                <p class="score__close btn">Close</p>
               </div>
 
             </div>

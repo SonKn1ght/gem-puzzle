@@ -142,6 +142,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     this._statsCurrentGame = {};
     this._logGame = new _utils_stack__WEBPACK_IMPORTED_MODULE_2__["default"]();
     this._storage = window.localStorage;
+    this._timeStop = false;
 
     // биндим что бы не терять контекст в таймауте
     this.measuringTime = this.measuringTime.bind(this);
@@ -150,7 +151,6 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   init(options) {
-    console.log(options)
     this._statsCurrentGame.surrender = false;
     if (options === `load`) {
       this.loadGame();
@@ -229,6 +229,10 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     return this._currentGameOptions;
   }
 
+  getCurrentGameStats() {
+    return this._statsCurrentGame;
+  }
+
   updateGame(updateType, update) {
     // получаем текущую позицию воида
     const voidValue = this._voidValue;
@@ -258,7 +262,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     // готовим измененые параметры для отправки в презентор
     const updateAll = {
       numberBone: update,
-      count: this._statsCurrentGame.countMoves,
+      countMoves: this._statsCurrentGame.countMoves,
     };
 
     if (!this._statsCurrentGame.surrender) {
@@ -276,13 +280,16 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   measuringTime(updateType = _utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].MEASURING_TIME) {
+    if (this._timeStop) {
+      return;
+    }
     // самозацикленные часики с сэйвом игры каждую секунду
     this.saveGame();
     this._statsCurrentGame.endTime = new Date();
     this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
       - this._statsCurrentGame.startTime.getTime();
 
-    this._notify(updateType, this._statsCurrentGame.durationGame);
+    this._notify(updateType, this._statsCurrentGame);
 
     setTimeout(this.measuringTime, 1000);
   }
@@ -312,6 +319,7 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   checkWin() {
+
     let isWin = true;
     // пробегаем по полю игры сравнивая состояния положений ячеек и значений лежащих в них
     this._currentGame.forEach((currentElement) => {
@@ -320,6 +328,8 @@ class GameModel extends _observer__WEBPACK_IMPORTED_MODULE_0__["default"] {
       }
     });
     if (isWin) {
+      // останавливаем часы
+      this._timeStop = true;
       // прокидываю стату в обработку завершения игры в стате данные
       // о том пользователь сам выиграл или за него доигрывали
       this._notify(_utils_const__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].WIN, this._statsCurrentGame);
@@ -473,6 +483,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+const MIN_IMG_NUMBER = 1;
+const MAX_IMG_NUMBER = 150;
+
 class GamePresenter {
   constructor(gameContainer, gameModel, scoreModel) {
     this._gameContainer = gameContainer;
@@ -509,6 +522,7 @@ class GamePresenter {
     } else {
       this._gameModel.init(this._optionGame);
       this._renderNewGame();
+
     }
 
     this._scoreModel.getStorage();
@@ -524,6 +538,10 @@ class GamePresenter {
   }
 
   _renderNewGame() {
+    // при рестарте обновляем картинку если она включена пользователем
+    if (this._optionGame.background !== null) {
+      this._optionGame.background = `./assets/image/${Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_4__["getRandomInteger"])(MIN_IMG_NUMBER, MAX_IMG_NUMBER)}.jpg`;
+    }
     this._gameComponent = new _view_game_view__WEBPACK_IMPORTED_MODULE_1__["default"](this._gameModel.getGame(), this._optionGame);
     // тут будем устанавливать на игру внешние обработчики вытащил в отдельный метод////
     Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
@@ -535,6 +553,8 @@ class GamePresenter {
       this._gameModel.getCurrentGameOptions());
     Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["render"])(this._gameContainer, this._gameComponent.getElement(), _utils_const__WEBPACK_IMPORTED_MODULE_0__["RenderPosition"].BEFOREEND);
     this._setHandlersGameComponent();
+    // обновляем счетчик при перезагрузке страницы
+    this._controlPanelComponent.updateCounter(this._gameModel.getCurrentGameStats());
   }
 
   _renderScore() {
@@ -592,10 +612,12 @@ class GamePresenter {
 
   _handleGiveBackground(evt) {
     evt.preventDefault();
-    const minImgNumber = 1;
-    const maxImgNumber = 150;
     // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
-    this._optionGame.background = `./assets/image/${Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_4__["getRandomInteger"])(minImgNumber, maxImgNumber)}.img`;
+    if (this._optionGame.background === null) {
+      this._optionGame.background = `./assets/image/${Object(_utils_utils_for_model__WEBPACK_IMPORTED_MODULE_4__["getRandomInteger"])(MIN_IMG_NUMBER, MAX_IMG_NUMBER)}.jpg`;
+    } else {
+      this._optionGame.background = null;
+    }
   }
 
   _handleSizeChange(evt) {
@@ -608,12 +630,11 @@ class GamePresenter {
 
   _handleBoneDragDrop(evt) {
     // если будет время доработать соскальзывание курсора с костяшки при быстром перемещении мыши
-    // довольное спорный момент но функции и обработчики MouseMove и MouseUp будут здесь внутри
-    // , а не вынесены в отдельные методы
     evt.preventDefault();
     const targetDrag = evt.target;
     const container = this._gameComponent.getElement();
     const dropTargetCoords = this._gameComponent.getElement().querySelector(`.zero`).getBoundingClientRect();
+
     let startCoords = {
       x: evt.clientX,
       y: evt.clientY,
@@ -697,7 +718,10 @@ class GamePresenter {
     switch (updateType) {
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].MOVING:
         this._gameComponent.swapBone(data.numberBone);
-        this._controlPanelComponent.updateCounter(data.count);
+        this._controlPanelComponent.updateCounter(data);
+        // озвучка задействуется здесь только по возвращению
+        // подтверждения валидности перемещения из модели
+        this._controlPanelComponent.playSoundPressBone();
         break;
       case _utils_const__WEBPACK_IMPORTED_MODULE_0__["UpdateType"].RESTART:
         Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["remove"])(this._gameComponent);
@@ -748,6 +772,7 @@ const UserAction = {
   SWAP_BONE: `SWAP_BONE`,
   NEW_GAME: `NEW_GAME`,
   SHOW_HOW_WIN: `SHOW_HOW_WIN`,
+  SCORING_SWAP_BONE: `SCORING_SWAP_BONE`,
 };
 
 const UpdateType = {
@@ -1303,9 +1328,11 @@ __webpack_require__.r(__webpack_exports__);
 class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor() {
     super();
+    this._soundActive = true;
 
     this._countContainer = this.getElement().querySelector(`.control-panel__moves`);
     this._timeContainer = this.getElement().querySelector(`.control-panel__time`);
+    this._hiddenOptions = this.getElement().querySelector(`.control-panel__hidden-options`);
 
     this._newGameClickHandler = this._newGameClickHandler.bind(this);
     this._scoreClickHandler = this._scoreClickHandler.bind(this);
@@ -1313,53 +1340,62 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
     this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
     this._numberDisplaySwitchHandler = this._numberDisplaySwitchHandler.bind(this);
     this._giveBackgroundHandler = this._giveBackgroundHandler.bind(this);
+
+    this._handleOptionToggle = this._handleOptionToggle.bind(this);
+    this._handleCloseOptionAtStart = this._handleCloseOptionAtStart.bind(this);
+    this._handleSwitchNumbers = this._handleSwitchNumbers.bind(this);
+    this._handleSwitchSound = this._handleSwitchSound.bind(this);
+
+    this._setInnerHandlers();
   }
 
   _getTemplate() {
     return `<div class="control-panel">
               <div class="control-panel__wrapper-first-row">
-                <button class="control-panel__new-game">New Game</button>
-                <button class="control-panel__give-background">Добавь картинку</button>
-                <div class="control-panel__options">
-                  <ul class="control-panel__size-control-list">
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="3">
-                        <span class="radio-indicator">3X3</span>
-                      </label>
-                    </li>
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="4" checked>
-                        <span class="radio-indicator">4X4</span>
-                      </label>
-                    </li>
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="5">
-                        <span class="radio-indicator">5X5</span>
-                      </label>
-                    </li>
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="6">
-                        <span class="radio-indicator">6X6</span>
-                      </label>
-                    </li>
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="7">
-                        <span class="radio-indicator">7X7</span>
-                      </label>
-                    </li>
-                    <li class="control-panel__size-item">
-                      <label>
-                        <input class="visually-hidden" type="radio" name="size" value="8">
-                        <span class="radio-indicator">8X8</span>
-                      </label>
-                    </li>
-                  </ul>
-                </div>
+                <button class="control-panel__new-game btn">Старт</button>
+                <button class="control-panel__setting-new-game-button btn">Опции новой игры</button>
+                <div class="control-panel__hidden-options visually-hidden">
+                                  <button class="control-panel__give-background btn ">Без картины</button>
+                <ul class="control-panel__size-control-list ">
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="3">
+                      <span class="radio-indicator">3X3</span>
+                    </label>
+                  </li>
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="4" checked>
+                      <span class="radio-indicator">4X4</span>
+                    </label>
+                  </li>
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="5">
+                      <span class="radio-indicator">5X5</span>
+                    </label>
+                  </li>
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="6">
+                      <span class="radio-indicator">6X6</span>
+                    </label>
+                  </li>
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="7">
+                      <span class="radio-indicator">7X7</span>
+                    </label>
+                  </li>
+                  <li class="control-panel__size-item">
+                    <label>
+                      <input class="visually-hidden" type="radio" name="size" value="8">
+                      <span class="radio-indicator">8X8</span>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+
               </div>
               <div class="control-panel__wrapper-second-row">
                 <div class="control-panel__moves-container">
@@ -1368,34 +1404,90 @@ class ControlPanelView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["def
                 <div class="control-panel__time-container">
                 Time: <span class="control-panel__time">00:00</span>
                 </div>
-                <button class="control-panel__score">Score</button>
+                <button class="control-panel__score btn">Score</button>
               </div>
               <div class="control-panel__wrapper-third-row">
-                <button class="control-panel__end-game">Играй за меня машина!</button>
-
-                <button class="control-panel__switch-numbers">Скрыть цифры</button>
+                <button class="control-panel__end-game btn">Доиграй!</button>
+                <button class="control-panel__control-sounds btn sound-active"></button>
+                <button class="control-panel__switch-numbers btn">Числа<br> убрать</button>
               </div>
-
+              <audio id="sound" src="./assets/sounds/Sound.mp3"></audio>
             </div>`;
   }
 
-  updateCounter(count = 0) {
-    this._count = count;
-    this._countContainer.innerHTML = this._count;
+  // обновители отображения состояний метрики игры
+  updateCounter(statsCurrentGame) {
+    if (statsCurrentGame === undefined) {
+      this._countContainer.innerHTML = 0;
+    } else {
+      this._count = statsCurrentGame.countMoves;
+      this._countContainer.innerHTML = this._count;
+    }
   }
 
-  updateTime(duration = `00:00`) {
-    if (typeof duration !== `number`) {
+  updateTime(statsCurrentGame = `00:00`) {
+    if (typeof statsCurrentGame.durationGame !== `number`) {
       this._timeContainer.innerHTML = `00:00`;
       return;
     }
-
-    this._timeContainer.innerHTML = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(duration);
+    this._timeContainer.innerHTML = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["formatGameDuration"])(statsCurrentGame.durationGame);
   }
 
+  // крякалка
+  playSoundPressBone() {
+    if (this._soundActive) {
+      const audio = document.querySelector(`#sound`);
+      audio.currentTime = 0;
+      audio.play();
+    }
+  }
+
+  // внутренние ставим пачкой сразу
   _setInnerHandlers() {
+    this.getElement().querySelector(`.control-panel__give-background`).addEventListener(`click`, this._handleGiveBackgroundView);
+    this.getElement().querySelector(`.control-panel__setting-new-game-button`).addEventListener(`click`, this._handleOptionToggle);
+    this.getElement().querySelector(`.control-panel__new-game`).addEventListener(`click`, this._handleCloseOptionAtStart);
+    this.getElement().querySelector(`.control-panel__switch-numbers`).addEventListener(`click`, this._handleSwitchNumbers);
+    this.getElement().querySelector(`.control-panel__control-sounds`).addEventListener(`click`, this._handleSwitchSound);
   }
 
+  // сначала внутренние обработчики, отвечающие только за режимы внешнего вида
+  _handleGiveBackgroundView(evt) {
+    evt.preventDefault();
+    if (evt.target.innerHTML === `Без картины`) {
+      evt.target.innerHTML = `С картиной`;
+    } else {
+      evt.target.innerHTML = `Без картины`;
+    }
+  }
+
+  _handleOptionToggle() {
+    this._hiddenOptions.classList.toggle(`visually-hidden`);
+  }
+
+  _handleCloseOptionAtStart() {
+    if (!this._hiddenOptions.classList.contains(`visually-hidden`)) {
+      this._hiddenOptions.classList.add(`visually-hidden`);
+    }
+  }
+
+  _handleSwitchNumbers(evt) {
+    evt.preventDefault();
+    if (evt.target.innerHTML === `Числа<br> убрать`) {
+      evt.target.innerHTML = `Числа<br> вернуть`;
+    } else {
+      evt.target.innerHTML = `Числа<br> убрать`;
+    }
+  }
+
+  _handleSwitchSound(evt) {
+    evt.preventDefault();
+    evt.target.classList.toggle(`sound-active`);
+    evt.target.classList.toggle(`sound-disable`);
+    this._soundActive = !this._soundActive;
+  }
+
+  // обработчикки и их установшики внешних воздействий
   _newGameClickHandler(evt) {
     evt.preventDefault();
     this._callback.newGameClickHandler(evt);
@@ -1475,11 +1567,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const getTemlateBones = (data, size) => {
+const getTemlateBones = (data, options) => {
   return data.reduce((acc, cur, i) => {
     return `${acc}<div
-              class="bone_img-${cur.value} bone_x${size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(size) ? `zero` : ``}"
-              data-position="${cur.value}">${cur.value + 1}</div>`;
+              class="bone_img-${cur.value} bone_x${options.size} number_${i} ${cur.value === Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getVoidPosition"])(options.size) ? `zero` : ``}"
+              data-position="${cur.value}" style="background-image: url('${options.background}');">${cur.value + 1}</div>`;
   }, ``);
 };
 
@@ -1499,8 +1591,8 @@ class GameView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] {
     return `<div class="container_x${this._size} bones ${this._options.numberActive ? `` : `container_font-size-zero`}"
               style="background-image: url('${this._options.background}');"
               >
-    ${getTemlateBones(this._game, this._size)}
-    <div class="popup_end-game visually-hidden">123456</div>
+    ${getTemlateBones(this._game, this._options)}
+    <div class="popup_end-game visually-hidden" style="background-image: url('${this._options.background}');"></div>
   </div>`;
   }
 
@@ -1586,8 +1678,8 @@ __webpack_require__.r(__webpack_exports__);
 const generateRecordItems = (score, size) => {
   if (score[size].length === 0) {
     return `<li class="score__item-empty">
-              <span class="score__empty-row">Nobody has won this version yet.</span>
-              <span class="score__empty-row">Just do it.</span>
+              <span class="score__empty-row">Тут еще никто не выиграл.</span>
+              <span class="score__empty-row">Сделай это!</span>
             </li>`;
   }
   return score[size].reduce((acc, cur, i) => {
@@ -1662,7 +1754,7 @@ class ScoreView extends _absctract_view__WEBPACK_IMPORTED_MODULE_0__["default"] 
                 ${generateRecordItems(this._score, this._size)}
               </ul>
               <div class="score__close-wrapper">
-                <p class="score__close">Close</p>
+                <p class="score__close btn">Close</p>
               </div>
 
             </div>
