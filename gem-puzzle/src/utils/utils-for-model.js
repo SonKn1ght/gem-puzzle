@@ -18,27 +18,10 @@ export const shuffleGame = (array, numberOfMixes, log, voidValue) => {
     // меняем местами ноль и одну из доступных позиций
     mixedArray[voidPosition].value = mixedArray[swapPosition].value;
     mixedArray[swapPosition].value = voidValue;
-    // пишем все перемещения в стэк старый вариант пока подумать еще над этим
   }
   // возвращаем перемешанную комбинацию
   return mixedArray;
 };
-
-// разматывает саму структуру данных, не визуал, подумать нужно ли
-// export const stirBackGame = (array, log, notify, updateType) => {
-//   const arrayBack = array.slice();
-//   const count = log.size();
-//   for (let i = 0; i < count; i += 1) {
-//     const swapIndex = log.pop();
-//
-//     // notify(updateType, swapIndex[0]);
-//
-//     const swapStorage = arrayBack[swapIndex[0]].value;
-//     arrayBack[swapIndex[0]].value = arrayBack[swapIndex[1]].value;
-//     arrayBack[swapIndex[1]].value = swapStorage;
-//   }
-//   return arrayBack;
-// };
 
 // Функции для генерации стартовых графов.
 // граф представляет собой массив объектов с тремя значениями.
