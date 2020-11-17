@@ -1,6 +1,7 @@
-import GameModel from './model/game-model';
-import ScoreModel from './model/score-model';
-import GamePresenter from './presentor/game-presenter';
+import GameModel from './js/model/game-model';
+import ScoreModel from './js/model/score-model';
+import GamePresenter from './js/presentor/game-presenter';
+import './style.css';
 
 const bodyElement = document.querySelector(`body`);
 
