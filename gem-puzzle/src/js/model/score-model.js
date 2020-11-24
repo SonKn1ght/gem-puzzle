@@ -1,4 +1,5 @@
 import Observer from './observer';
+import { GAME_SIZE_RANGE } from '../utils/const';
 
 export default class ScoreModel extends Observer {
   constructor() {
@@ -22,14 +23,11 @@ export default class ScoreModel extends Observer {
     }
 
     if (JSON.parse(this._storage.getItem(`theseAreTheTopWinnersInSuperTagging`)) === null) {
-      this._score = {
-        3: [],
-        4: [],
-        5: [],
-        6: [],
-        7: [],
-        8: [],
-      };
+      // из константы генерируем нужную структуру под рекорды
+      this._score = Object.values(GAME_SIZE_RANGE).reduce((acc, cur) => {
+        acc[+cur] = [];
+        return acc;
+      }, {});
       return;
     }
 

@@ -9,17 +9,12 @@ const MIN_IMG_NUMBER = 1;
 const MAX_IMG_NUMBER = 150;
 
 export default class GamePresenter {
-  constructor(gameContainer, gameModel, scoreModel) {
+  constructor(gameContainer, gameModel, scoreModel, option) {
     this._gameContainer = gameContainer;
     this._gameModel = gameModel;
     this._scoreModel = scoreModel;
-    // используется по факту для самого первого запуска
-    this._optionGame = {
-      size: `4`,
-      numberActive: true,
-      background: null,
-      startTime: new Date(),
-    };
+    // завожу стартовые опции в класс снаружи из константы
+    this._optionGame = option;
 
     this._gameModel.addObserver(this._handleModelEvent);
   }

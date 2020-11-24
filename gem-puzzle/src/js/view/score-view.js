@@ -1,5 +1,20 @@
 import AbstractView from './absctract-view';
 import { formatGameDuration } from '../utils/utils';
+import { GAME_SIZE_RANGE } from '../utils/const';
+
+const generateRecordItem = (options = null, size = null) => {
+    return `<li class="score__item">
+              <span class="score__item-number">
+              ${size == null ? `№` : size + 1}
+              </span>
+              <span class="score__item-moves">
+              ${options == null ? `Moves` : options.countMoves}
+              </span>
+              <span class="score__item-duration">
+              ${options == null ? `Time` : formatGameDuration(options.durationGame)}
+              </span>
+            </li>`
+}
 
 const generateRecordItems = (score, size) => {
   if (score[size].length === 0) {
@@ -9,18 +24,22 @@ const generateRecordItems = (score, size) => {
             </li>`;
   }
   return score[size].reduce((acc, cur, i) => {
-    acc += `<li class="score__item">
-              <span class="score__item-number">${i + 1}</span>
-              <span class="score__item-moves">${cur.countMoves}</span>
-              <span class="score__item-duration">${formatGameDuration(cur.durationGame)}</span>
-            </li>`;
+    acc += generateRecordItem(cur, i);
     return acc;
-  }, `<li class="score__item">
-              <span class="score__item-number">№</span>
-              <span class="score__item-moves">Moves</span>
-              <span class="score__item-duration">Time</span>
-            </li>`);
+  }, `${generateRecordItem()}`);
 };
+
+const getTemplateSizeRecords = (sizeRecords, size) => {
+
+  return Object.values(sizeRecords).reduce((acc, item) => {
+    return acc += `<li class="score__size-item">
+                     <label>
+                       <input class="visually-hidden" type="radio" name="size-score" value="${item}" ${size == item ? `checked` : ``}>
+                       <span class="radio-indicator_score">${item}X${item}</span>
+                     </label>
+                   </li>`
+  }, ``)
+}
 
 export default class ScoreView extends AbstractView {
   constructor(score, size) {
@@ -35,52 +54,16 @@ export default class ScoreView extends AbstractView {
   _getTemplate() {
     return `<div class="score_wrapper">
               <div class="score_container">
-              <ul class="score__size-control-list">
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="3" ${this._size === `3` ? `checked` : ``}>
-                    <span class="radio-indicator_score">3X3</span>
-                  </label>
-                </li>
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="4" ${this._size === `4` ? `checked` : ``}>
-                    <span class="radio-indicator_score">4X4</span>
-                  </label>
-                </li>
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="5" ${this._size === `5` ? `checked` : ``}>
-                    <span class="radio-indicator_score">5X5</span>
-                  </label>
-                </li>
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="6" ${this._size === `6` ? `checked` : ``}>
-                    <span class="radio-indicator_score">6X6</span>
-                  </label>
-                </li>
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="7" ${this._size === `7` ? `checked` : ``}>
-                    <span class="radio-indicator_score">7X7</span>
-                  </label>
-                </li>
-                <li class="score__size-item">
-                  <label>
-                    <input class="visually-hidden" type="radio" name="size-score" value="8" ${this._size === `8` ? `checked` : ``}>
-                    <span class="radio-indicator_score">8X8</span>
-                  </label>
-                </li>
-              </ul>
-              <ul class="score__list">
-                ${generateRecordItems(this._score, this._size)}
-              </ul>
-              <div class="score__close-wrapper">
-                <p class="score__close btn">Закрыть</p>
+                <ul class="score__size-control-list">
+                ${getTemplateSizeRecords(GAME_SIZE_RANGE, this._size)}
+                </ul>
+                <ul class="score__list">
+                  ${generateRecordItems(this._score, this._size)}
+                </ul>
+                <div class="score__close-wrapper">
+                  <p class="score__close btn">Закрыть</p>
+                </div>
               </div>
-
-            </div>
             </div>`;
   }
 

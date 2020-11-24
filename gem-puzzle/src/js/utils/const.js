@@ -26,3 +26,19 @@ export const NUMBER_OF_PERMUTATIONS = {
   7: 200,
   8: 250,
 };
+
+export const GAME_SIZE_RANGE = {
+  _3: 3,
+  _4: 4,
+  _5: 5,
+  _6: 6,
+  _7: 7,
+  _8: 8,
+};
+
+export const FIRST_GAME_OPTION = {
+  size: 4,
+  numberActive: true,
+  background: null,
+  startTime: new Date(),
+};

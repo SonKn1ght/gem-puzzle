@@ -1,5 +1,25 @@
 import AbstractView from './absctract-view';
 import { formatGameDuration } from '../utils/utils';
+import { GAME_SIZE_RANGE } from '../utils/const';
+import { FIRST_GAME_OPTION } from '../utils/const';
+
+// через отдельную функцию в нее подаются размеры полей и номер поля по умолчанию из стартовых опций игры
+const getTemplateSizeItem = (sizeGame, checked) => {
+  return Object.values(sizeGame).reduce((acc, item) => {
+    return acc += `<li class="control-panel__size-item">
+                    <label>
+                      <input
+                      class="visually-hidden"
+                      type="radio"
+                      name="size"
+                      value="${item}"
+                      ${item == checked ? `checked` : ``}
+                      >
+                      <span class="radio-indicator">${item}X${item}</span>
+                    </label>
+                  </li>`
+  }, ``)
+}
 
 export default class ControlPanelView extends AbstractView {
   constructor() {
@@ -21,42 +41,7 @@ export default class ControlPanelView extends AbstractView {
                 <div class="control-panel__hidden-options visually-hidden">
                                   <button class="control-panel__give-background btn ">Игра без картины</button>
                 <ul class="control-panel__size-control-list ">
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="3">
-                      <span class="radio-indicator">3X3</span>
-                    </label>
-                  </li>
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="4" checked>
-                      <span class="radio-indicator">4X4</span>
-                    </label>
-                  </li>
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="5">
-                      <span class="radio-indicator">5X5</span>
-                    </label>
-                  </li>
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="6">
-                      <span class="radio-indicator">6X6</span>
-                    </label>
-                  </li>
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="7">
-                      <span class="radio-indicator">7X7</span>
-                    </label>
-                  </li>
-                  <li class="control-panel__size-item">
-                    <label>
-                      <input class="visually-hidden" type="radio" name="size" value="8">
-                      <span class="radio-indicator">8X8</span>
-                    </label>
-                  </li>
+                ${getTemplateSizeItem(GAME_SIZE_RANGE, FIRST_GAME_OPTION.size)}
                 </ul>
               </div>
 
