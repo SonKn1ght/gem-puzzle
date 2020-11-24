@@ -4,9 +4,9 @@ import Stack from '../utils/stack';
 import { getVoidPosition } from '../utils/utils';
 import { UpdateType, NUMBER_OF_PERMUTATIONS } from "../utils/const";
 
-export default class GameModel extends Observer {
+export default class GameModel {
   constructor() {
-    super();
+    this.observer = new Observer();
     this._currentGame = [];
     this._statsCurrentGame = {};
     this._logGame = new Stack();
@@ -84,7 +84,7 @@ export default class GameModel extends Observer {
     this.saveGame();
     this.measuringTime();
 
-    this._notify(updateType, update);
+    this.observer.notify(updateType, update);
   }
 
   getGame() {
@@ -138,11 +138,11 @@ export default class GameModel extends Observer {
       this.saveGame();
       // проверяем не произошел ли выигрыш
       this.checkWin();
-      this._notify(updateType, updateAll);
+      this.observer.notify(updateType, updateAll);
       return;
     }
 
-    this._notify(updateType, updateAll);
+    this.observer.notify(updateType, updateAll);
   }
 
   measuringTime = (updateType = UpdateType.MEASURING_TIME) => {
@@ -155,7 +155,7 @@ export default class GameModel extends Observer {
     this._statsCurrentGame.durationGame = this._statsCurrentGame.endTime.getTime()
       - this._statsCurrentGame.startTime.getTime();
 
-    this._notify(updateType, this._statsCurrentGame);
+    this.observer.notify(updateType, this._statsCurrentGame);
 
     setTimeout(this.measuringTime, 1000);
   }
@@ -201,7 +201,7 @@ export default class GameModel extends Observer {
       this._timeStop = true;
       // прокидываю стату в обработку завершения игры в стате данные
       // о том пользователь сам выиграл или за него доигрывали
-      this._notify(UpdateType.WIN, this._statsCurrentGame);
+      this.observer.notify(UpdateType.WIN, this._statsCurrentGame);
     }
   }
 

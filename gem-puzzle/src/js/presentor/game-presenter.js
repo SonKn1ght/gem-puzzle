@@ -16,7 +16,7 @@ export default class GamePresenter {
     // завожу стартовые опции в класс снаружи из константы
     this._optionGame = option;
 
-    this._gameModel.addObserver(this._handleModelEvent);
+    this._gameModel.observer.addObserver(this._handleModelEvent);
   }
 
   init() {
