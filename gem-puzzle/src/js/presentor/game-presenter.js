@@ -21,18 +21,6 @@ export default class GamePresenter {
       startTime: new Date(),
     };
 
-    this._handleNewGameClick = this._handleNewGameClick.bind(this);
-    this._handleScoreClick = this._handleScoreClick.bind(this);
-    this._handleHelpGameClick = this._handleHelpGameClick.bind(this);
-    this._handleNumberDisplaySwitch = this._handleNumberDisplaySwitch.bind(this);
-    this._handleGiveBackground = this._handleGiveBackground.bind(this);
-    this._handleScoreCloseClick = this._handleScoreCloseClick.bind(this);
-    this._handleSizeChange = this._handleSizeChange.bind(this);
-    this._handleBoneClick = this._handleBoneClick.bind(this);
-    this._handleBoneDragDrop = this._handleBoneDragDrop.bind(this);
-
-    this._handleModelEvent = this._handleModelEvent.bind(this);
-
     this._gameModel.addObserver(this._handleModelEvent);
   }
 
@@ -103,27 +91,27 @@ export default class GamePresenter {
     this._scoreComponent.setCloseScoreClickHandler(this._handleScoreCloseClick);
   }
 
-  _handleNewGameClick(evt) {
+  _handleNewGameClick = (evt) => {
     evt.preventDefault();
     this._handleViewAction(UserAction.NEW_GAME, UpdateType.RESTART, this._optionGame);
   }
 
-  _handleScoreClick(evt) {
+  _handleScoreClick = (evt) => {
     evt.preventDefault();
     this._renderScore();
   }
 
-  _handleScoreCloseClick(evt) {
+  _handleScoreCloseClick = (evt) => {
     evt.preventDefault();
     remove(this._scoreComponent);
   }
 
-  _handleHelpGameClick(evt) {
+  _handleHelpGameClick = (evt) => {
     evt.preventDefault();
     this._handleViewAction(UserAction.SHOW_HOW_WIN, UpdateType.SURRENDER);
   }
 
-  _handleNumberDisplaySwitch(evt) {
+  _handleNumberDisplaySwitch = (evt) => {
     evt.preventDefault();
     // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
     this._optionGame.numberActive = !this._optionGame.numberActive;
@@ -131,7 +119,7 @@ export default class GamePresenter {
     this._gameComponent.numberDisplaySwitch();
   }
 
-  _handleGiveBackground(evt) {
+  _handleGiveBackground = (evt) => {
     evt.preventDefault();
     // меняем настройки => будут активны для новой игры и также сохраняютсяв автосэйве
     if (this._optionGame.background === null) {
@@ -141,15 +129,15 @@ export default class GamePresenter {
     }
   }
 
-  _handleSizeChange(evt) {
+  _handleSizeChange = (evt) => {
     this._optionGame.size = evt.target.value;
   }
 
-  _handleBoneClick(evt) {
+  _handleBoneClick = (evt) => {
     this._handleViewAction(UserAction.SWAP_BONE, UpdateType.MOVING, evt.target.dataset.position);
   }
 
-  _handleBoneDragDrop(evt) {
+  _handleBoneDragDrop = (evt) => {
     // если будет время доработать соскальзывание курсора с костяшки при быстром перемещении мыши
     evt.preventDefault();
     const targetDrag = evt.target;
@@ -237,7 +225,7 @@ export default class GamePresenter {
     }
   }
 
-  _handleModelEvent(updateType, data) {
+  _handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.MOVING:
         this._gameComponent.swapBone(data.numberBone);

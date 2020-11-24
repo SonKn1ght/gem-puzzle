@@ -17,8 +17,6 @@ export default class GameView extends AbstractView {
     this._size = options.size;
     this._options = options;
     this._game = game;
-    this._boneClickHandler = this._boneClickHandler.bind(this);
-    this._boneDragDropHandler = this._boneDragDropHandler.bind(this);
   }
 
   _getTemplate() {
@@ -66,7 +64,7 @@ export default class GameView extends AbstractView {
     this.getElement().classList.toggle(`container_font-size-zero`);
   }
 
-  _boneClickHandler(evt) {
+  _boneClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.boneClick(evt);
   }
@@ -80,7 +78,7 @@ export default class GameView extends AbstractView {
     this.getElement().removeEventListener(`click`, this._boneClickHandler);
   }
 
-  _boneDragDropHandler(evt) {
+  _boneDragDropHandler = (evt) => {
     evt.preventDefault();
     this._callback.boneDragDrop(evt);
   }

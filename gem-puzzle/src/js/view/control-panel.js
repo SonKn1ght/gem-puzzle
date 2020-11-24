@@ -10,18 +10,6 @@ export default class ControlPanelView extends AbstractView {
     this._timeContainer = this.getElement().querySelector(`.control-panel__time`);
     this._hiddenOptions = this.getElement().querySelector(`.control-panel__hidden-options`);
 
-    this._newGameClickHandler = this._newGameClickHandler.bind(this);
-    this._scoreClickHandler = this._scoreClickHandler.bind(this);
-    this._helpGameClickHandler = this._helpGameClickHandler.bind(this);
-    this._sizeChangeHandler = this._sizeChangeHandler.bind(this);
-    this._numberDisplaySwitchHandler = this._numberDisplaySwitchHandler.bind(this);
-    this._giveBackgroundHandler = this._giveBackgroundHandler.bind(this);
-
-    this._handleOptionToggle = this._handleOptionToggle.bind(this);
-    this._handleCloseOptionAtStart = this._handleCloseOptionAtStart.bind(this);
-    this._handleSwitchNumbers = this._handleSwitchNumbers.bind(this);
-    this._handleSwitchSound = this._handleSwitchSound.bind(this);
-
     this._setInnerHandlers();
   }
 
@@ -140,7 +128,7 @@ export default class ControlPanelView extends AbstractView {
   }
 
   // сначала внутренние обработчики, отвечающие только за режимы внешнего вида
-  _handleGiveBackgroundView(evt) {
+  _handleGiveBackgroundView = (evt) => {
     evt.preventDefault();
     if (evt.target.innerHTML === `Игра без картины`) {
       evt.target.innerHTML = `Игра с картиной`;
@@ -149,17 +137,17 @@ export default class ControlPanelView extends AbstractView {
     }
   }
 
-  _handleOptionToggle() {
+  _handleOptionToggle = () => {
     this._hiddenOptions.classList.toggle(`visually-hidden`);
   }
 
-  _handleCloseOptionAtStart() {
+  _handleCloseOptionAtStart = () => {
     if (!this._hiddenOptions.classList.contains(`visually-hidden`)) {
       this._hiddenOptions.classList.add(`visually-hidden`);
     }
   }
 
-  _handleSwitchNumbers(evt) {
+  _handleSwitchNumbers = (evt) => {
     evt.preventDefault();
     if (evt.target.innerHTML === `Числа<br> убрать`) {
       evt.target.innerHTML = `Числа<br> вернуть`;
@@ -168,7 +156,7 @@ export default class ControlPanelView extends AbstractView {
     }
   }
 
-  _handleSwitchSound(evt) {
+  _handleSwitchSound = (evt) => {
     evt.preventDefault();
     evt.target.classList.toggle(`sound-active`);
     evt.target.classList.toggle(`sound-disable`);
@@ -176,7 +164,7 @@ export default class ControlPanelView extends AbstractView {
   }
 
   // обработчикки и их установшики внешних воздействий
-  _newGameClickHandler(evt) {
+  _newGameClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.newGameClickHandler(evt);
   }
@@ -186,7 +174,7 @@ export default class ControlPanelView extends AbstractView {
     this.getElement().querySelector(`.control-panel__new-game`).addEventListener(`click`, this._newGameClickHandler);
   }
 
-  _scoreClickHandler(evt) {
+  _scoreClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.scoreClickHandler(evt);
   }
@@ -196,7 +184,7 @@ export default class ControlPanelView extends AbstractView {
     this.getElement().querySelector(`.control-panel__score`).addEventListener(`click`, this._scoreClickHandler);
   }
 
-  _helpGameClickHandler(evt) {
+  _helpGameClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.helpGameClickHandler(evt);
   }
@@ -206,7 +194,7 @@ export default class ControlPanelView extends AbstractView {
     this.getElement().querySelector(`.control-panel__end-game`).addEventListener(`click`, this._helpGameClickHandler);
   }
 
-  _sizeChangeHandler(evt) {
+  _sizeChangeHandler = (evt) => {
     evt.preventDefault();
     this._callback.sizeChangeHandler(evt);
   }
@@ -216,7 +204,7 @@ export default class ControlPanelView extends AbstractView {
     this.getElement().querySelector(`.control-panel__size-control-list`).addEventListener(`change`, this._sizeChangeHandler);
   }
 
-  _numberDisplaySwitchHandler(evt) {
+  _numberDisplaySwitchHandler = (evt) => {
     evt.preventDefault();
     this._callback.numberDisplaySwitch(evt);
   }
@@ -226,7 +214,7 @@ export default class ControlPanelView extends AbstractView {
     this.getElement().querySelector(`.control-panel__switch-numbers`).addEventListener(`click`, this._numberDisplaySwitchHandler);
   }
 
-  _giveBackgroundHandler(evt) {
+  _giveBackgroundHandler = (evt) => {
     evt.preventDefault();
     this._callback.giveBackground(evt);
   }

@@ -29,9 +29,6 @@ export default class ScoreView extends AbstractView {
     this._score = score;
     this._size = size;
 
-    this._closeScoreClickHandler = this._closeScoreClickHandler.bind(this);
-    this._changeRecordsByTypeOfGame = this._changeRecordsByTypeOfGame.bind(this);
-
     this._setHandlers();
   }
 
@@ -91,7 +88,7 @@ export default class ScoreView extends AbstractView {
     this.getElement().addEventListener(`change`, this._changeRecordsByTypeOfGame);
   }
 
-  _closeScoreClickHandler(evt) {
+  _closeScoreClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.closeScoreClickHandler(evt);
   }
@@ -101,7 +98,7 @@ export default class ScoreView extends AbstractView {
     this.getElement().querySelector(`.score__close`).addEventListener(`click`, this._closeScoreClickHandler);
   }
 
-  _changeRecordsByTypeOfGame(evt) {
+  _changeRecordsByTypeOfGame = (evt) => {
     this.getElement().querySelector(`.score__list`).innerHTML = generateRecordItems(this._score, evt.target.value);
   }
 }

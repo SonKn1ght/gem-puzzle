@@ -12,11 +12,6 @@ export default class GameModel extends Observer {
     this._logGame = new Stack();
     this._storage = window.localStorage;
     this._timeStop = false;
-
-    // биндим что бы не терять контекст в таймауте
-    this.measuringTime = this.measuringTime.bind(this);
-    this._notify = this._notify.bind(this);
-    this.completeGame = this.completeGame.bind(this);
   }
 
   init(options) {
@@ -150,7 +145,7 @@ export default class GameModel extends Observer {
     this._notify(updateType, updateAll);
   }
 
-  measuringTime(updateType = UpdateType.MEASURING_TIME) {
+  measuringTime = (updateType = UpdateType.MEASURING_TIME) => {
     if (this._timeStop) {
       return;
     }
@@ -165,7 +160,7 @@ export default class GameModel extends Observer {
     setTimeout(this.measuringTime, 1000);
   }
 
-  completeGame() {
+  completeGame = () => {
     if (this._statsCurrentGame.surrender === false) {
       this._logGame.optimize();
     }
