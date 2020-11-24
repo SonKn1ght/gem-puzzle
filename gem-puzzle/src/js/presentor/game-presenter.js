@@ -182,17 +182,18 @@ export default class GamePresenter {
       }, 100);
 
       // Проверяю попал ли отпускаемый элемент на пустую костяшку
-      if (dropTargetCoords.top < upEvt.clientY && dropTargetCoords.bottom > upEvt.clientY
-&& dropTargetCoords.left < upEvt.clientX && dropTargetCoords.right > upEvt.clientX) {
+      const checkTop = dropTargetCoords.top < upEvt.clientY;
+      const checkBottom = dropTargetCoords.bottom > upEvt.clientY;
+      const checkLeft = dropTargetCoords.left < upEvt.clientX;
+      const checkRight = dropTargetCoords.right > upEvt.clientX;
+
+      if (checkTop && checkBottom && checkLeft && checkRight) {
         this._handleViewAction(UserAction.SWAP_BONE,
           UpdateType.MOVING,
           evt.target.dataset.position);
-        targetDrag.style.top = ``;
-        targetDrag.style.left = ``;
-      } else {
-        targetDrag.style.top = ``;
-        targetDrag.style.left = ``;
       }
+      targetDrag.style.top = ``;
+      targetDrag.style.left = ``;
 
       container.removeEventListener(`mousemove`, onMouseMove);
       container.removeEventListener(`mouseup`, onMouseUp);
